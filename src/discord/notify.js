@@ -46,10 +46,8 @@ export function buildRepairEmbed(repair) {
     .setFooter({ text: `The Repair Zone · via ${repair.source === 'discord' ? 'Discord' : 'website'}` })
     .setTimestamp(new Date(repair.createdAt));
 
-  const contactBits = [];
-  if (repair.phone) contactBits.push(`📞 ${repair.phone}`);
-  if (repair.contact) contactBits.push(`✉️ ${repair.contact}`);
-  if (contactBits.length) embed.addFields({ name: 'Contact', value: contactBits.join(' · '), inline: false });
+  // Forum channels are public, so contact details (phone / email / Discord tag)
+  // are deliberately left out of the post — they live only on the admin ticket.
   if (repair.notes) embed.addFields({ name: 'Notes', value: repair.notes.slice(0, 1024) });
   return embed;
 }
@@ -107,7 +105,7 @@ export async function createForumPostForRepair(repair, { mentionUserId = null, f
   const type = db.repairTypeMeta(repair.type);
   const title = `${type.emoji} #${repair.id} · ${repair.item} — ${repair.name}`.slice(0, 96);
   const mention = mentionUserId ? `<@${mentionUserId}> ` : '';
-  const askPhotos = files.length ? '' : '\n📎 **Reply here with photos or files** of the item — it really helps us diagnose.';
+  const askPhotos = files.length ? '' : '\n📎 **Reply here with photos, or your 3D print files** — it really helps us diagnose or print.';
   const content =
     `${mention}Thanks — your repair request is logged! A Repair Zone volunteer will pick it up shortly.` + askPhotos;
 

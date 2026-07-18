@@ -16,8 +16,8 @@ Attendees submit repair requests from the website or straight from Discord (a bu
 
 **On Discord**
 - 🔘 A persistent **"Request a Repair" button**, posted as a **pinned forum post** in your forum channel (`/panel`)
-- 🪟 The button opens a **modal form** with a **request-type picker** (Repair, 3D Print, Electronics, Other), a description, **phone number**, **booth ID**, and a **photo upload** (up to 5 files — Discord modals support file uploads via the new Label/Components-v2 API)
-- 🧵 On submit, the bot **creates a new forum post**, **applies the matching tag** (e.g. `3D Print`), **pings the requester**, and **attaches their photos**
+- 🪟 The button opens a **modal form** with a **request-type picker** (Repair, 3D Print, Electronics, Other), a description, **phone number**, **booth ID**, and a **file upload** for photos or 3D print files (STL/3MF/STEP/OBJ, up to 5 files — Discord modals support file uploads via the new Label/Components-v2 API)
+- 🧵 On submit, the bot **creates a new forum post**, **applies the matching tag** (e.g. `3D Print`), **pings the requester**, and **attaches their uploaded files**
 - 🏷️ Auto-provisions the request-type **forum tags** on startup so posts are filterable
 - 🛠️ Volunteer slash commands: `/queue`, `/claim`, `/status`, `/tools`
 - 🔔 Optional staff log channel/webhook for every new request and tool checkout
@@ -197,7 +197,7 @@ repair-zone/
 
 ## ⚖️ A note on signatures & waivers
 
-The website's "I agree to the Terms" checkbox is an **acknowledgment**, not the binding waiver. Because attendees aren't identity-verified online and the group is an unincorporated volunteer association handling potential injury/property liability, the **binding liability waiver is still signed on paper at the booth** — that's the stronger, more defensible record (especially under California law). The forms make this explicit ("you'll sign the waiver at the booth"). The site records the acknowledgment + timestamp as intake. *This isn't legal advice; if the group wants online e-signatures to be binding, run it past a lawyer first.*
+For **repairs**, the website's "I agree to the Terms" checkbox is the record — attendees acknowledge the Terms & Conditions at intake, and the site stores that acknowledgment + timestamp. No separate paper waiver is collected for repairs. **Tool rentals are different:** borrowers sign the printed rental agreement on paper at the booth when they pick up a tool (the rental form says so explicitly), since that's the stronger, more defensible record for loaned equipment. *This isn't legal advice; if the group wants the online repair acknowledgment to function as a binding waiver — or wants a paper waiver for repairs too — run it past a lawyer first.*
 
 ## 🔐 Privacy & data
 

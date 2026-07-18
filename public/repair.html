@@ -17,8 +17,8 @@
         The Repair Zone
       </a>
       <div class="nav-links">
+        <a href="/repair">Request a repair</a>
         <a href="/borrow">Borrow a tool</a>
-        <a href="/terms" class="hide-sm">Terms</a>
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">◐</button>
       </div>
     </nav>
@@ -62,7 +62,7 @@
 
         <div class="form-row">
           <div class="field">
-            <label for="phone">Phone number <span class="req">*</span> <span class="hint">(so we can reach you)</span></label>
+            <label for="phone">Phone number <span class="hint">(optional)</span></label>
             <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="40" placeholder="555-123-4567" />
           </div>
           <div class="field">
@@ -94,7 +94,7 @@
         <div class="field">
           <label class="check">
             <input type="checkbox" id="agreedTerms" name="agreedTerms" required />
-            <span>I have read and agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a>. I understand repairs are free, provided as-is with no warranty, that I'm responsible for backing up my own data, and that <strong>I'll sign the liability waiver on paper at the booth</strong> before any work begins. <span class="req">*</span></span>
+            <span>I have read and agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a>. I understand repairs are free, provided as-is with no warranty, and that I'm responsible for backing up my own data. <span class="req">*</span></span>
           </label>
         </div>
 
@@ -107,8 +107,8 @@
 
   <footer class="site-footer">
     <div class="container row">
-      <div><strong>The Repair Zone</strong> · a volunteer collective at Open Sauce.</div>
-      <div><a href="/">Home</a> · <a href="/terms">Terms</a></div>
+      <div><strong>The Repair Zone</strong> · Open Sauce volunteer booth.</div>
+      <div><a href="/repair">Repair</a> · <a href="/borrow">Borrow</a> · <a href="/terms">Terms</a></div>
     </div>
   </footer>
 

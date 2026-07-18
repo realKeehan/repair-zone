@@ -37,10 +37,9 @@ export function buildRequestPanel() {
     .setColor(0xf97316)
     .setDescription(
       'Broken gear? Need a 3D print? We fix and make things for free at Open Sauce.\n\n' +
-        'Tap the button below to open a short form (you can attach photos). ' +
+        'Tap the button below to open a short form (attach photos, or your 3D print files). ' +
         "We'll create a post for your request, ping you, and a volunteer will take it from there.\n\n" +
-        '_All services are free and as-is. By submitting you agree to the Repair Zone Terms & Conditions. ' +
-        "You'll sign the liability waiver on paper at the booth before we start._",
+        '_All services are free and as-is. By submitting you agree to the Repair Zone Terms & Conditions._',
     )
     .setFooter({ text: 'The Repair Zone · Open Sauce' });
 
@@ -69,7 +68,7 @@ function buildRequestModal() {
     .setStyle(TextInputStyle.Short)
     .setPlaceholder('e.g. 555-123-4567')
     .setMaxLength(40)
-    .setRequired(true);
+    .setRequired(false);
 
   const booth = new TextInputBuilder()
     .setCustomId(IDS.f_booth)
@@ -86,9 +85,9 @@ function buildRequestModal() {
     .addLabelComponents(
       new LabelBuilder().setLabel('What do you need?').setStringSelectMenuComponent(typeSelect),
       new LabelBuilder().setLabel('Describe the request').setTextInputComponent(desc),
-      new LabelBuilder().setLabel('Phone number').setDescription('So we can reach you when it\'s ready').setTextInputComponent(phone),
+      new LabelBuilder().setLabel('Phone number (optional)').setDescription('So we can reach you when it\'s ready — we can also ping you here on Discord').setTextInputComponent(phone),
       new LabelBuilder().setLabel('Booth ID / location').setTextInputComponent(booth),
-      new LabelBuilder().setLabel('Photos (optional)').setDescription('Attach up to 5 photos of the item / problem').setFileUploadComponent(photos),
+      new LabelBuilder().setLabel('Photos or 3D files (optional)').setDescription('Attach up to 5 files — photos of the item, or your 3D print files (STL, 3MF, STEP, OBJ…)').setFileUploadComponent(photos),
     );
 }
 
@@ -213,7 +212,7 @@ async function handleModal(interaction) {
     const post = await notify.createForumPostForRepair(repair, { mentionUserId: interaction.user.id, files: fileUrls });
     await notify.sendLog(`🔧 New ${db.repairTypeMeta(typeValue).label} request **#${repair.id}** — ${item} (${requesterName}) via Discord`);
     const link = post ? `\n➡️ <#${post.id}>` : '';
-    const photoNote = fileUrls.length ? ` I attached your ${fileUrls.length} photo(s).` : ' You can drop photos/files in the thread.';
+    const photoNote = fileUrls.length ? ` I attached your ${fileUrls.length} file(s).` : ' You can drop photos or 3D files in the thread.';
     await interaction.editReply({ content: `✅ Thanks, **${requesterName}**! Request **#${repair.id}** is logged.${link}${photoNote}` });
   } catch (err) {
     console.error('[discord] modal submit / forum post failed:', err);

@@ -197,18 +197,32 @@ export function deleteTool(id) {
 
 /* ───────────────────────────── Rentals ───────────────────────────── */
 
-/** Check a tool out to a borrower. Returns { rental, tool } or throws. */
+/**
+ * Check a tool out to a borrower. Two modes:
+ *  - Free text (public borrow form): pass `toolName` — the borrower types what
+ *    they're taking; the rental is logged with no inventory record.
+ *  - Inventory-linked (staff "check out on behalf"): pass a `toolId` — the tool
+ *    record is looked up and flipped to "out" so availability stays accurate.
+ * Returns { rental, tool } (tool is null for free-text rentals) or throws.
+ */
 export function createRental(data) {
-  const tool = getTool(data.toolId);
-  if (!tool) throw new Error('Tool not found');
-  if (tool.status !== 'available') throw new Error(`"${tool.name}" is currently ${tool.status} and cannot be borrowed`);
+  let tool = null;
+  let toolName = (data.toolName || '').trim();
+
+  if (data.toolId) {
+    tool = getTool(data.toolId);
+    if (!tool) throw new Error('Tool not found');
+    if (tool.status !== 'available') throw new Error(`"${tool.name}" is currently ${tool.status} and cannot be borrowed`);
+    toolName = tool.name;
+  }
+  if (!toolName) throw new Error('Please enter the tool you want to borrow.');
 
   db.counters.rental += 1;
   const rental = {
     id: db.counters.rental,
     createdAt: nowISO(),
-    toolId: tool.id,
-    toolName: tool.name,
+    toolId: tool ? tool.id : null,
+    toolName,
     name: data.name,
     boothId: data.boothId || '',
     phone: data.phone || '',
@@ -219,11 +233,13 @@ export function createRental(data) {
   };
   db.rentals.push(rental);
 
-  tool.status = 'out';
-  tool.borrowerName = rental.name;
-  tool.borrowerBooth = rental.boothId;
-  tool.checkedOutAt = rental.timeOut;
-  tool.rentalId = rental.id;
+  if (tool) {
+    tool.status = 'out';
+    tool.borrowerName = rental.name;
+    tool.borrowerBooth = rental.boothId;
+    tool.checkedOutAt = rental.timeOut;
+    tool.rentalId = rental.id;
+  }
   save();
   return { rental, tool };
 }

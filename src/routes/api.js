@@ -102,14 +102,14 @@ function publicRepair(r) {
 apiRouter.post('/rentals', publicLimiter, async (req, res) => {
   const body = req.body || {};
   const data = {
-    toolId: Number(body.toolId),
+    toolName: str(body.toolName, 160),
     name: str(body.name, 120),
     boothId: str(body.boothId, 60),
     phone: str(body.phone, 40),
     agreedTerms: body.agreedTerms === true || body.agreedTerms === 'true',
   };
-  if (!data.toolId) return res.status(400).json({ error: 'Please choose a tool to borrow.' });
-  const missing = requireFields(data, ['name', 'phone']);
+  if (!data.toolName) return res.status(400).json({ error: 'Please enter the tool you want to borrow.' });
+  const missing = requireFields(data, ['name']);
   if (missing.length) return res.status(400).json({ error: `Missing required field(s): ${missing.join(', ')}` });
   if (!data.agreedTerms) return res.status(400).json({ error: 'You must accept the Tool Rental Terms to borrow a tool.' });
 

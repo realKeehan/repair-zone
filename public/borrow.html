@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Borrow a Tool · The Repair Zone</title>
-  <meta name="description" content="Borrow tools from The Repair Zone at Open Sauce. See live availability and check one out." />
+  <meta name="description" content="Borrow a tool from The Repair Zone at Open Sauce." />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>" />
 </head>
@@ -18,7 +18,7 @@
       </a>
       <div class="nav-links">
         <a href="/repair">Request a repair</a>
-        <a href="/terms" class="hide-sm">Terms</a>
+        <a href="/borrow">Borrow a tool</a>
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">◐</button>
       </div>
     </nav>
@@ -27,7 +27,7 @@
   <main class="container narrow" style="padding-top:40px;">
     <span class="eyebrow">🧰 Tool lending</span>
     <h1 style="margin:16px 0 8px;">Borrow a tool</h1>
-    <p class="muted" style="margin-top:0;">Availability updates live. Tools must be returned by <strong>end of day</strong> unless a lead says otherwise.</p>
+    <p class="muted" style="margin-top:0;">Type what you're taking so we can track it. Tools must be returned by <strong>end of day</strong> unless a lead says otherwise.</p>
 
     <div class="form-card" style="margin-top:24px;">
       <div class="notice" id="notice"></div>
@@ -45,11 +45,8 @@
 
       <form id="borrow-form">
         <div class="field">
-          <label for="toolId">Choose a tool <span class="req">*</span> <span class="hint">(unavailable items are disabled)</span></label>
-          <select id="toolId" name="toolId" required>
-            <option value="">Loading live inventory…</option>
-          </select>
-          <p class="muted" id="tool-meta" style="font-size:.85rem;margin:8px 0 0;"></p>
+          <label for="toolName">What are you borrowing? <span class="req">*</span></label>
+          <input type="text" id="toolName" name="toolName" required maxlength="160" placeholder="e.g. Soldering iron, multimeter, screwdriver set…" />
         </div>
 
         <div class="form-row">
@@ -58,8 +55,8 @@
             <input type="text" id="name" name="name" autocomplete="name" required maxlength="120" />
           </div>
           <div class="field">
-            <label for="phone">Phone number <span class="req">*</span></label>
-            <input type="tel" id="phone" name="phone" autocomplete="tel" required maxlength="40" placeholder="555-123-4567" />
+            <label for="phone">Phone number <span class="hint">(optional)</span></label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="40" placeholder="555-123-4567" />
           </div>
         </div>
 
@@ -78,26 +75,12 @@
         <button type="submit" class="btn btn-primary" id="submit-btn" style="width:100%;">Check out this tool</button>
       </form>
     </div>
-
-    <div style="margin-top:28px;">
-      <div class="toolbar">
-        <h2 class="section-title" style="margin:0;font-size:1.2rem;">Live inventory</h2>
-        <div class="spacer"></div>
-        <button class="btn btn-ghost btn-sm" onclick="loadTools()">↻ Refresh</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Tool</th><th>Category</th><th>Status</th></tr></thead>
-          <tbody id="inventory"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
   </main>
 
   <footer class="site-footer">
     <div class="container row">
-      <div><strong>The Repair Zone</strong> · a volunteer collective at Open Sauce.</div>
-      <div><a href="/">Home</a> · <a href="/terms">Terms</a></div>
+      <div><strong>The Repair Zone</strong> · Open Sauce volunteer booth.</div>
+      <div><a href="/repair">Repair</a> · <a href="/borrow">Borrow</a> · <a href="/terms">Terms</a></div>
     </div>
   </footer>
 

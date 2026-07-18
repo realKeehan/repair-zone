@@ -71,10 +71,17 @@ function renderStats(s) {
     <div class="stat"><div class="n">${outCount}</div><div class="l">Open rentals</div></div>`;
 }
 
+function searchQuery() {
+  const el = RZ.el('search');
+  return el ? el.value.trim().toLowerCase() : '';
+}
+
 function renderTools() {
+  const q = searchQuery();
   const body = RZ.el('tools');
-  if (!TOOLS.length) return (body.innerHTML = '<tr><td colspan="6" class="muted">No tools.</td></tr>');
-  body.innerHTML = TOOLS.map((t) => {
+  const list = TOOLS.filter((t) => !q || `${t.name} ${t.category} ${t.borrowerName || ''} ${t.borrowerBooth || ''}`.toLowerCase().includes(q));
+  if (!list.length) return (body.innerHTML = `<tr><td colspan="6" class="muted">${TOOLS.length ? 'No tools match your search.' : 'No tools.'}</td></tr>`);
+  body.innerHTML = list.map((t) => {
     const opts = TOOL_STATUSES.map((s) => `<option value="${s}" ${s === t.status ? 'selected' : ''}>${RZ.statusLabel(s)}</option>`).join('');
     const action =
       t.status === 'out' && t.rentalId
@@ -94,9 +101,11 @@ function renderTools() {
 }
 
 function renderRentals() {
+  const q = searchQuery();
   const body = RZ.el('rentals');
-  if (!RENTALS.length) return (body.innerHTML = '<tr><td colspan="8" class="muted">No rentals yet.</td></tr>');
-  body.innerHTML = RENTALS.map(
+  const list = RENTALS.filter((r) => !q || `${r.toolName} ${r.name} ${r.boothId || ''} ${r.phone || ''}`.toLowerCase().includes(q));
+  if (!list.length) return (body.innerHTML = `<tr><td colspan="8" class="muted">${RENTALS.length ? 'No rentals match your search.' : 'No rentals yet.'}</td></tr>`);
+  body.innerHTML = list.map(
     (r) => `<tr>
       <td class="mono">#${r.id}</td>
       <td>${RZ.esc(r.toolName)}</td>
@@ -191,6 +200,11 @@ function closeModals() {
   document.querySelectorAll('.modal-backdrop').forEach((m) => m.classList.remove('show'));
 }
 document.querySelectorAll('.modal-backdrop').forEach((m) => m.addEventListener('click', (e) => e.target === m && closeModals()));
+
+RZ.el('search').addEventListener('input', () => {
+  renderTools();
+  renderRentals();
+});
 
 window.setToolStatus = setToolStatus;
 window.returnRental = returnRental;
