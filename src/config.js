@@ -22,9 +22,10 @@ export const config = {
   port: Number(process.env.PORT) || 3000,
   publicBaseUrl: (process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, ''),
   trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
-  // Defaults to 'admin123' so the admin panel just works for testing even when
-  // no .env / env var is uploaded. Override with a strong ADMIN_TOKEN for real use.
-  adminToken: process.env.ADMIN_TOKEN || 'admin123',
+  // No default on purpose: if ADMIN_TOKEN is unset (and ADMIN_AUTH isn't
+  // "external"), requireAdmin fails closed with a 503 rather than accepting a
+  // guessable password. Set a strong ADMIN_TOKEN to open the admin panel.
+  adminToken: process.env.ADMIN_TOKEN || '',
   // When 'external' (or 'htaccess'/'proxy'), the app does NOT check its own
   // admin token — access to /admin and /api/admin is assumed to be gated
   // upstream (e.g. Apache Basic Auth via .htaccess on cPanel). See docs/DEPLOYMENT.md.
@@ -48,8 +49,8 @@ export function checkConfig() {
   const warnings = [];
   if (config.adminAuthExternal) {
     warnings.push('ADMIN_AUTH=external — the app is NOT checking an admin token. Make sure .htaccess/proxy Basic Auth protects /admin AND /api/admin, or the admin panels are open.');
-  } else if (config.adminToken === 'admin123' || config.adminToken === 'change-me-to-a-long-random-string') {
-    warnings.push('ADMIN_TOKEN is the built-in testing default ("admin123") — fine for local testing, but set a strong ADMIN_TOKEN before any public/real deploy.');
+  } else if (!config.adminToken || config.adminToken === 'change-me-to-a-long-random-string') {
+    warnings.push('ADMIN_TOKEN is unset or the placeholder and ADMIN_AUTH is not "external" — the admin API is locked (503). Set a strong ADMIN_TOKEN, or set ADMIN_AUTH=external and protect /admin with .htaccess.');
   }
   if (!discordEnabled) {
     warnings.push('Discord bot is disabled (DISCORD_BOT_TOKEN / DISCORD_CLIENT_ID not set). The site still works.');
