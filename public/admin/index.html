@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Repair Queue · Repair Zone Admin</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>" />
+</head>
+<body>
+  <div class="stripe"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="/admin">
+        <svg class="logo" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="11" fill="#f97316"/><path d="M31.5 15.5a6 6 0 0 1-7.8 7.8L15 32l1 1 8.7-8.7a6 6 0 0 1 7.8-7.8l-3.2 3.2 1.8 1.8 3.2-3.2Z" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="17" cy="31" r="2" fill="#f97316"/></svg>
+        Repair Zone <span class="muted" style="font-weight:600;">· Admin</span>
+      </a>
+      <div class="nav-links">
+        <a href="/admin">Repairs</a>
+        <a href="/admin/borrowing">Borrowing</a>
+        <a href="#" id="logout" style="display:none;">Sign out</a>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Login gate -->
+  <main class="container" id="gate" style="display:none;">
+    <div class="form-card gate">
+      <h2 style="margin-top:0;">🔒 Staff sign-in</h2>
+      <p class="muted">Enter the admin token to manage the repair queue.</p>
+      <div class="notice" id="gate-notice"></div>
+      <div class="field">
+        <label for="token">Admin token</label>
+        <input type="password" id="token" placeholder="••••••••••••" />
+      </div>
+      <button class="btn btn-primary" id="gate-btn" style="width:100%;">Sign in</button>
+    </div>
+  </main>
+
+  <!-- Panel -->
+  <main class="container" id="panel" style="display:none;padding-top:28px;padding-bottom:60px;">
+    <div class="toolbar">
+      <h1 style="margin:0;font-size:1.5rem;">Repair queue</h1>
+      <div class="spacer"></div>
+      <label class="check" style="margin:0;"><input type="checkbox" id="autorefresh" /> <span>Auto-refresh</span></label>
+      <button class="btn btn-ghost btn-sm" onclick="load()">↻ Refresh</button>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="toolbar">
+      <div class="filter-tabs" id="filters">
+        <button data-f="active" class="active">Active</button>
+        <button data-f="open">Open</button>
+        <button data-f="in_progress">In progress</button>
+        <button data-f="done">Done</button>
+        <button data-f="all">All</button>
+      </div>
+      <input type="text" id="search" placeholder="Search name, item, booth…" style="max-width:260px;" class="spacer" />
+    </div>
+
+    <div class="notice" id="notice"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Item / issue</th><th>Requester</th><th>Contact</th><th>Status</th><th>Owner</th><th>When</th><th></th></tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Notes modal -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <h3 id="modal-title">Repair details</h3>
+      <div id="modal-body"></div>
+      <div class="field" style="margin-top:12px;">
+        <label for="modal-notes">Internal notes</label>
+        <textarea id="modal-notes" style="min-height:90px;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+        <button class="btn btn-primary btn-sm" id="modal-save">Save notes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

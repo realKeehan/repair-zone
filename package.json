@@ -1,0 +1,30 @@
+{
+  "name": "repair-zone",
+  "version": "1.0.0",
+  "description": "Website + Discord bot for The Repair Zone — the volunteer repair & tool-rental booth at Open Sauce.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "deploy-commands": "node src/discord/deploy-commands.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "repair",
+    "open-sauce",
+    "discord-bot",
+    "convention",
+    "tool-rental"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0"
+  }
+}

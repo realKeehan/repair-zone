@@ -1,0 +1,255 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const DB_FILE = path.join(DATA_DIR, 'db.json');
+
+/**
+ * Tiny synchronous JSON store. Perfect for a single-booth workload: one process
+ * (web server + Discord bot share it), a few hundred records over a weekend.
+ * No native dependencies, no DB server to babysit at a convention.
+ */
+
+export const REPAIR_STATUSES = ['open', 'claimed', 'in_progress', 'done', 'unable', 'picked_up'];
+export const TOOL_STATUSES = ['available', 'out', 'maintenance'];
+
+/** Default inventory so the borrow form has something to show on first run. */
+const SEED_TOOLS = [
+  { name: 'Soldering Iron (temp-controlled)', category: 'Electronics', requiresTraining: true },
+  { name: 'Hot Air Rework Station', category: 'Electronics', requiresTraining: true },
+  { name: 'Digital Multimeter', category: 'Electronics', requiresTraining: false },
+  { name: 'Bench Power Supply', category: 'Electronics', requiresTraining: true },
+  { name: 'Precision Screwdriver Set', category: 'Hand tools', requiresTraining: false },
+  { name: 'iFixit Pro Tech Toolkit', category: 'Hand tools', requiresTraining: false },
+  { name: 'Heat Gun', category: 'Hand tools', requiresTraining: true },
+  { name: 'Hot Glue Gun', category: 'Hand tools', requiresTraining: false },
+  { name: 'Rotary Tool (Dremel)', category: 'Power tools', requiresTraining: true },
+  { name: 'Cordless Drill / Driver', category: 'Power tools', requiresTraining: true },
+  { name: 'Digital Calipers', category: 'Measurement', requiresTraining: false },
+  { name: 'Helping Hands + Magnifier', category: 'Electronics', requiresTraining: false },
+  { name: 'Hedron Resonance Amplifier', category: 'Experimental', requiresTraining: true },
+];
+
+function nowISO() {
+  return new Date().toISOString();
+}
+
+function emptyDb() {
+  return {
+    counters: { repair: 0, rental: 0, tool: 0 },
+    repairs: [],
+    rentals: [],
+    tools: [],
+  };
+}
+
+let db = emptyDb();
+
+function ensureLoaded() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (fs.existsSync(DB_FILE)) {
+    try {
+      db = { ...emptyDb(), ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) };
+    } catch (err) {
+      console.error('[db] Could not parse db.json, starting fresh:', err.message);
+      db = emptyDb();
+    }
+  }
+  if (db.tools.length === 0) {
+    for (const t of SEED_TOOLS) {
+      db.counters.tool += 1;
+      db.tools.push({
+        id: db.counters.tool,
+        name: t.name,
+        category: t.category,
+        requiresTraining: Boolean(t.requiresTraining),
+        status: 'available',
+        borrowerName: null,
+        borrowerBooth: null,
+        checkedOutAt: null,
+        rentalId: null,
+        notes: '',
+      });
+    }
+  }
+  save();
+}
+
+function save() {
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+}
+
+ensureLoaded();
+
+/* ───────────────────────────── Repairs ───────────────────────────── */
+
+export function createRepair(data) {
+  db.counters.repair += 1;
+  const record = {
+    id: db.counters.repair,
+    createdAt: nowISO(),
+    updatedAt: nowISO(),
+    source: data.source || 'web',
+    name: data.name,
+    phone: data.phone || '',
+    contact: data.contact || '',
+    boothId: data.boothId || '',
+    item: data.item,
+    issue: data.issue,
+    notes: data.notes || '',
+    status: 'open',
+    assignee: null,
+    discord: data.discord || null, // { userId, threadId, guildId }
+    agreedTerms: Boolean(data.agreedTerms),
+  };
+  db.repairs.push(record);
+  save();
+  return record;
+}
+
+export function listRepairs() {
+  return [...db.repairs].sort((a, b) => b.id - a.id);
+}
+
+export function getRepair(id) {
+  return db.repairs.find((r) => r.id === Number(id)) || null;
+}
+
+export function updateRepair(id, patch) {
+  const r = getRepair(id);
+  if (!r) return null;
+  const allowed = ['status', 'assignee', 'notes', 'phone', 'contact', 'boothId', 'item', 'issue'];
+  for (const key of allowed) {
+    if (key in patch && patch[key] !== undefined) r[key] = patch[key];
+  }
+  if (patch.discord) r.discord = { ...(r.discord || {}), ...patch.discord };
+  r.updatedAt = nowISO();
+  save();
+  return r;
+}
+
+/* ───────────────────────────── Tools ───────────────────────────── */
+
+export function listTools() {
+  return [...db.tools].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function getTool(id) {
+  return db.tools.find((t) => t.id === Number(id)) || null;
+}
+
+export function createTool(data) {
+  db.counters.tool += 1;
+  const tool = {
+    id: db.counters.tool,
+    name: data.name,
+    category: data.category || 'General',
+    requiresTraining: Boolean(data.requiresTraining),
+    status: 'available',
+    borrowerName: null,
+    borrowerBooth: null,
+    checkedOutAt: null,
+    rentalId: null,
+    notes: data.notes || '',
+  };
+  db.tools.push(tool);
+  save();
+  return tool;
+}
+
+export function updateTool(id, patch) {
+  const t = getTool(id);
+  if (!t) return null;
+  const allowed = ['name', 'category', 'requiresTraining', 'status', 'notes', 'borrowerName', 'borrowerBooth', 'checkedOutAt', 'rentalId'];
+  for (const key of allowed) {
+    if (key in patch && patch[key] !== undefined) t[key] = patch[key];
+  }
+  save();
+  return t;
+}
+
+export function deleteTool(id) {
+  const idx = db.tools.findIndex((t) => t.id === Number(id));
+  if (idx === -1) return false;
+  db.tools.splice(idx, 1);
+  save();
+  return true;
+}
+
+/* ───────────────────────────── Rentals ───────────────────────────── */
+
+/** Check a tool out to a borrower. Returns { rental, tool } or throws. */
+export function createRental(data) {
+  const tool = getTool(data.toolId);
+  if (!tool) throw new Error('Tool not found');
+  if (tool.status !== 'available') throw new Error(`"${tool.name}" is currently ${tool.status} and cannot be borrowed`);
+
+  db.counters.rental += 1;
+  const rental = {
+    id: db.counters.rental,
+    createdAt: nowISO(),
+    toolId: tool.id,
+    toolName: tool.name,
+    name: data.name,
+    boothId: data.boothId || '',
+    phone: data.phone || '',
+    timeOut: nowISO(),
+    timeIn: null,
+    status: 'out',
+    agreedTerms: Boolean(data.agreedTerms),
+  };
+  db.rentals.push(rental);
+
+  tool.status = 'out';
+  tool.borrowerName = rental.name;
+  tool.borrowerBooth = rental.boothId;
+  tool.checkedOutAt = rental.timeOut;
+  tool.rentalId = rental.id;
+  save();
+  return { rental, tool };
+}
+
+export function listRentals() {
+  return [...db.rentals].sort((a, b) => b.id - a.id);
+}
+
+export function getRental(id) {
+  return db.rentals.find((r) => r.id === Number(id)) || null;
+}
+
+/** Return a borrowed tool: mark rental returned and free the tool. */
+export function returnRental(id) {
+  const rental = getRental(id);
+  if (!rental) return null;
+  if (rental.status !== 'returned') {
+    rental.status = 'returned';
+    rental.timeIn = nowISO();
+    const tool = getTool(rental.toolId);
+    if (tool && tool.rentalId === rental.id) {
+      tool.status = 'available';
+      tool.borrowerName = null;
+      tool.borrowerBooth = null;
+      tool.checkedOutAt = null;
+      tool.rentalId = null;
+    }
+    save();
+  }
+  return rental;
+}
+
+export function stats() {
+  return {
+    repairs: {
+      total: db.repairs.length,
+      open: db.repairs.filter((r) => ['open', 'claimed', 'in_progress'].includes(r.status)).length,
+      done: db.repairs.filter((r) => ['done', 'picked_up'].includes(r.status)).length,
+    },
+    tools: {
+      total: db.tools.length,
+      available: db.tools.filter((t) => t.status === 'available').length,
+      out: db.tools.filter((t) => t.status === 'out').length,
+    },
+  };
+}

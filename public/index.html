@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Repair Zone · Free repairs & tool rentals at Open Sauce</title>
+  <meta name="description" content="The Repair Zone is a volunteer booth offering free repairs and tool rentals to Open Sauce exhibitors, staff, guests and attendees. Submit a repair request online." />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>" />
+</head>
+<body>
+  <div class="stripe"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="/">
+        <svg class="logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="48" height="48" rx="11" fill="#f97316"/>
+          <path d="M31.5 15.5a6 6 0 0 1-7.8 7.8L15 32l1 1 8.7-8.7a6 6 0 0 1 7.8-7.8l-3.2 3.2 1.8 1.8 3.2-3.2Z" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="17" cy="31" r="2" fill="#f97316"/>
+        </svg>
+        The Repair Zone
+      </a>
+      <div class="nav-links">
+        <a href="/#how" class="hide-sm">How it works</a>
+        <a href="/borrow">Borrow a tool</a>
+        <a href="/terms" class="hide-sm">Terms</a>
+        <a href="/repair" class="btn btn-primary btn-sm">Request a repair</a>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">🔧 Open Sauce · Volunteer Booth</span>
+          <h1>Broken something? We'll fix it — for free.</h1>
+          <p class="lead">The Repair Zone is a crew of volunteers patching up gear for Open Sauce exhibitors, staff, guests and attendees. Drop off an item, borrow a tool, or send a request before you even walk over.</p>
+          <div class="hero-cta">
+            <a href="/repair" class="btn btn-primary">Request a repair →</a>
+            <a href="/borrow" class="btn btn-ghost">Borrow a tool</a>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M126 52a26 26 0 0 1-34 34L58 120l16 16 34-34a26 26 0 0 1 34-34l-15 15-9-9 15-15-7-2Z" fill="#f97316"/>
+            <circle cx="66" cy="128" r="7" fill="#1c1a17"/>
+            <path d="M108 96l40 40a10 10 0 0 1-14 14l-40-40" stroke="#1c1a17" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section class="block" id="services">
+      <div class="container">
+        <h2 class="section-title">What we do</h2>
+        <p class="section-sub">Show up with a problem — leave with a fix (or at least a good story).</p>
+        <div class="grid grid-3">
+          <div class="card">
+            <div class="ic">🔩</div>
+            <h3>On-site repairs</h3>
+            <p>Electronics, soldering, 3D-print rescues, cosplay emergencies, laptops, cables, and the weird stuff. If we can, we will.</p>
+          </div>
+          <div class="card">
+            <div class="ic">🧰</div>
+            <h3>Tool lending</h3>
+            <p>Borrow soldering irons, multimeters, drivers and more from our bench. Check the live availability list before you head over.</p>
+          </div>
+          <div class="card">
+            <div class="ic">💸</div>
+            <h3>Always free</h3>
+            <p>Every repair, part and rental is provided at no cost to Open Sauce exhibitors, sponsors, staff, guests and attendees.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="block" id="how">
+      <div class="container narrow">
+        <h2 class="section-title">How it works</h2>
+        <p class="section-sub">Two ways in: this website, or our Discord.</p>
+        <div class="steps">
+          <div class="step"><div class="num"></div><div><strong>Send a request.</strong> Fill out the <a href="/repair">repair form</a> here, or tap <em>Request a Repair</em> in our Discord to open a quick form.</div></div>
+          <div class="step"><div class="num"></div><div><strong>We spin up a ticket.</strong> Your request lands in our queue and (on Discord) a private thread where we ping you and ask for photos.</div></div>
+          <div class="step"><div class="num"></div><div><strong>Bring it by the booth.</strong> A volunteer claims your ticket, diagnoses the item, and gets to work.</div></div>
+          <div class="step"><div class="num"></div><div><strong>Pick it up.</strong> We'll mark it repaired and let you know it's ready. Easy.</div></div>
+        </div>
+        <div class="callout">
+          <strong>Heads up:</strong> back up your data before handing over any electronics. Repairs are done as-is with no warranty — see the <a href="/terms">Terms &amp; Conditions</a>.
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="block">
+      <div class="container">
+        <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;background:linear-gradient(160deg,var(--surface),var(--orange-soft));">
+          <div>
+            <h2 class="section-title" style="margin:0 0 4px;">Ready when you are.</h2>
+            <p class="section-sub" style="margin:0;">Log a repair now — no need to wait in line.</p>
+          </div>
+          <a href="/repair" class="btn btn-primary">Request a repair →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container row">
+      <div>
+        <strong>The Repair Zone</strong> · a volunteer collective at Open Sauce.<br />
+        <small>Free, as-is, no warranties. Questions? Ask for Nathan Wortman or Evan Brand at the booth.</small>
+      </div>
+      <div>
+        <a href="/repair">Request a repair</a> · <a href="/borrow">Borrow a tool</a> · <a href="/terms">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/common.js"></script>
+</body>
+</html>

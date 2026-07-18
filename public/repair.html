@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request a Repair · The Repair Zone</title>
+  <meta name="description" content="Submit a repair request to The Repair Zone at Open Sauce." />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>" />
+</head>
+<body>
+  <div class="stripe"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="/">
+        <svg class="logo" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="11" fill="#f97316"/><path d="M31.5 15.5a6 6 0 0 1-7.8 7.8L15 32l1 1 8.7-8.7a6 6 0 0 1 7.8-7.8l-3.2 3.2 1.8 1.8 3.2-3.2Z" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="17" cy="31" r="2" fill="#f97316"/></svg>
+        The Repair Zone
+      </a>
+      <div class="nav-links">
+        <a href="/borrow">Borrow a tool</a>
+        <a href="/terms" class="hide-sm">Terms</a>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container narrow" style="padding-top:40px;">
+    <span class="eyebrow">🔧 Repair request</span>
+    <h1 style="margin:16px 0 8px;">Tell us what's broken</h1>
+    <p class="muted" style="margin-top:0;">Fill this out and we'll add you to the queue. You don't need to be at the booth yet.</p>
+
+    <div class="form-card" style="margin-top:24px;">
+      <div class="notice" id="notice"></div>
+
+      <div id="success-panel" style="display:none;">
+        <div style="text-align:center;padding:20px 0;">
+          <div style="font-size:3rem;">✅</div>
+          <h2 id="success-title">Request received!</h2>
+          <p class="muted" id="success-body"></p>
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <a href="/" class="btn btn-ghost">Back to home</a>
+            <button class="btn btn-primary" onclick="location.reload()">Submit another</button>
+          </div>
+        </div>
+      </div>
+
+      <form id="repair-form">
+        <div class="field">
+          <label for="name">Your name <span class="req">*</span></label>
+          <input type="text" id="name" name="name" autocomplete="name" required maxlength="120" />
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="phone">Phone number <span class="req">*</span> <span class="hint">(so we can reach you)</span></label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="40" placeholder="555-123-4567" />
+          </div>
+          <div class="field">
+            <label for="boothId">Booth ID / location <span class="hint">(optional)</span></label>
+            <input type="text" id="boothId" name="boothId" maxlength="60" placeholder="e.g. Hall B, Booth 214" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="contact">Other contact <span class="hint">(optional — Discord tag, email…)</span></label>
+          <input type="text" id="contact" name="contact" maxlength="120" placeholder="@you on Discord or you@email.com" />
+        </div>
+
+        <div class="field">
+          <label for="item">What needs fixing? <span class="req">*</span></label>
+          <input type="text" id="item" name="item" required maxlength="160" placeholder="Laptop, drone, 3D print, jacket zipper…" />
+        </div>
+
+        <div class="field">
+          <label for="issue">Describe the problem <span class="req">*</span></label>
+          <textarea id="issue" name="issue" required maxlength="2000" placeholder="What's wrong? What have you tried? Any smells, sparks, or error messages? The more detail, the faster we can help."></textarea>
+        </div>
+
+        <div class="field">
+          <label for="notes">Anything else? <span class="hint">(optional)</span></label>
+          <textarea id="notes" name="notes" maxlength="1000" style="min-height:70px;" placeholder="Deadlines, spare parts you brought, how to reach you at the con…"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="check">
+            <input type="checkbox" id="agreedTerms" name="agreedTerms" required />
+            <span>I agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a>. I understand repairs are free, provided as-is with no warranty, and that I'm responsible for backing up my own data. <span class="req">*</span></span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submit-btn" style="width:100%;">Submit repair request</button>
+      </form>
+    </div>
+
+    <p class="muted" style="text-align:center;margin-top:18px;font-size:.9rem;">Prefer Discord? Use the <strong>Request a Repair</strong> button in our server to do this without leaving chat.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container row">
+      <div><strong>The Repair Zone</strong> · a volunteer collective at Open Sauce.</div>
+      <div><a href="/">Home</a> · <a href="/terms">Terms</a></div>
+    </div>
+  </footer>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/repair.js"></script>
+</body>
+</html>

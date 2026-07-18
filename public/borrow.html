@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Borrow a Tool · The Repair Zone</title>
+  <meta name="description" content="Borrow tools from The Repair Zone at Open Sauce. See live availability and check one out." />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>" />
+</head>
+<body>
+  <div class="stripe"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="/">
+        <svg class="logo" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="11" fill="#f97316"/><path d="M31.5 15.5a6 6 0 0 1-7.8 7.8L15 32l1 1 8.7-8.7a6 6 0 0 1 7.8-7.8l-3.2 3.2 1.8 1.8 3.2-3.2Z" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="17" cy="31" r="2" fill="#f97316"/></svg>
+        The Repair Zone
+      </a>
+      <div class="nav-links">
+        <a href="/repair">Request a repair</a>
+        <a href="/terms" class="hide-sm">Terms</a>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container narrow" style="padding-top:40px;">
+    <span class="eyebrow">🧰 Tool lending</span>
+    <h1 style="margin:16px 0 8px;">Borrow a tool</h1>
+    <p class="muted" style="margin-top:0;">Availability updates live. Tools must be returned by <strong>end of day</strong> unless a lead says otherwise.</p>
+
+    <div class="form-card" style="margin-top:24px;">
+      <div class="notice" id="notice"></div>
+
+      <div id="success-panel" style="display:none;">
+        <div style="text-align:center;padding:20px 0;">
+          <div style="font-size:3rem;">🧰</div>
+          <h2 id="success-title">Checked out!</h2>
+          <p class="muted" id="success-body"></p>
+          <div style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="location.reload()">Borrow another</button>
+          </div>
+        </div>
+      </div>
+
+      <form id="borrow-form">
+        <div class="field">
+          <label for="toolId">Choose a tool <span class="req">*</span> <span class="hint">(unavailable items are disabled)</span></label>
+          <select id="toolId" name="toolId" required>
+            <option value="">Loading live inventory…</option>
+          </select>
+          <p class="muted" id="tool-meta" style="font-size:.85rem;margin:8px 0 0;"></p>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="name">Your name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" autocomplete="name" required maxlength="120" />
+          </div>
+          <div class="field">
+            <label for="phone">Phone number <span class="req">*</span></label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" required maxlength="40" placeholder="555-123-4567" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="boothId">Booth ID / location <span class="hint">(optional)</span></label>
+          <input type="text" id="boothId" name="boothId" maxlength="60" placeholder="e.g. Hall B, Booth 214" />
+        </div>
+
+        <div class="field">
+          <label class="check">
+            <input type="checkbox" id="agreedTerms" required />
+            <span>I agree to the <a href="/terms#rental" target="_blank">Tool Rental Terms</a>. I'll follow safety instructions, use PPE where needed, take reasonable care, and return the tool clean and working by end of day. <span class="req">*</span></span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submit-btn" style="width:100%;">Check out this tool</button>
+      </form>
+    </div>
+
+    <div style="margin-top:28px;">
+      <div class="toolbar">
+        <h2 class="section-title" style="margin:0;font-size:1.2rem;">Live inventory</h2>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadTools()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tool</th><th>Category</th><th>Status</th></tr></thead>
+          <tbody id="inventory"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container row">
+      <div><strong>The Repair Zone</strong> · a volunteer collective at Open Sauce.</div>
+      <div><a href="/">Home</a> · <a href="/terms">Terms</a></div>
+    </div>
+  </footer>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/borrow.js"></script>
+</body>
+</html>
