@@ -1,75 +1,85 @@
-# Deploying to Namecheap (cPanel) + Cloudflare
+# Deploying to Namecheap (Stellar / cPanel) + Cloudflare
 
-This app is a **Node.js server**, not a static site — the forms, admin panels, and API all need Node running. Namecheap shared hosting can run it via cPanel's **Setup Node.js App** (Phusion Passenger). Cloudflare sits in front for DNS, HTTPS, and caching.
+This app is **one Node.js process** that serves the website, the API, and runs the Discord bot together — the bot updates the same data the web API uses (an internal data layer, no second service to sync). That's the "run the bot on the site" pattern.
 
-> ⚠️ **Read the "Discord bot" note at the bottom first.** The website runs great on cPanel shared hosting. A long-running Discord *bot* is a poor fit for shared hosting and is usually better hosted separately. You can absolutely run the website on cPanel and the bot elsewhere — they share nothing but the (optional) same data file.
+> **Does Stellar support Node?** Yes — Namecheap shared plans (Stellar included) ship cPanel's **Setup Node.js App** (Node up to 22/24). Check **cPanel → Software → "Setup Node.js App"**. If that icon is missing on your plan, skip to **[Plan B](#plan-b--no-nodejs-on-your-plan)** at the bottom.
 
 ---
 
-## 1. Upload the code
+## Plan A — Node.js on cPanel (recommended)
 
-Option A — **Git** (if your cPanel has "Git Version Control"):
-- Clone `https://github.com/realKeehan/repair-zone` into a folder like `~/repair-zone` (outside `public_html`).
+### 1. Upload the code
+- **Git** (cPanel → *Git Version Control*): clone `https://github.com/realKeehan/repair-zone` into e.g. `~/repair-zone` (outside `public_html`), **or**
+- **Zip**: upload + extract into `~/repair-zone` via *File Manager*. Don't upload `node_modules`.
 
-Option B — **Zip upload**:
-- Download the repo as a ZIP, upload via cPanel **File Manager**, and extract into `~/repair-zone`.
-- Do **not** upload `node_modules` — cPanel installs dependencies for you.
-
-## 2. Create the Node.js application
-
+### 2. Create the Node.js app
 cPanel → **Setup Node.js App** → **Create Application**:
 
 | Field | Value |
 | --- | --- |
-| Node.js version | 18+ (20 or 22 recommended) |
+| Node.js version | 18+ (20/22 recommended) |
 | Application mode | Production |
-| Application root | `repair-zone` (the folder you uploaded) |
-| Application URL | your domain or subdomain (e.g. `repairs.yourdomain.com`) |
+| Application root | `repair-zone` |
+| Application URL | your domain/subdomain (e.g. `repairs.yourdomain.com`) |
 | Application startup file | `app.js` |
 
-Click **Create**. cPanel gives you a command to enter the app's virtualenv — you'll use it or the UI buttons below.
+### 3. Environment variables
+Add these in the Node.js App screen (not a committed `.env`):
 
-## 3. Environment variables
+- `TRUST_PROXY` = `1`
+- `PUBLIC_BASE_URL` = `https://repairs.yourdomain.com`
+- **Admin auth — pick one:**
+  - App token: `ADMIN_TOKEN` = a long random string (leave `ADMIN_AUTH` blank), **or**
+  - `.htaccess` Basic Auth: `ADMIN_AUTH` = `external` (see [step 6](#6-protect-the-admin-with-htaccess-basic-auth))
+- **Discord** (optional): `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_GUILD_ID`, `DISCORD_FORUM_CHANNEL_ID`, and optionally `DISCORD_LOG_CHANNEL_ID` / `DISCORD_WEBHOOK_URL`
 
-In the Node.js App screen, add the environment variables from `.env.example`:
+### 4. Install & start
+- Click **Run NPM Install**.
+- If using the bot: enter the virtualenv (cPanel shows the command) and run `npm run deploy-commands` once.
+- Click **Restart**. Passenger listens on the socket it assigns; `app.js` boots `src/server.js`, which reads `process.env.PORT`.
 
-- `ADMIN_TOKEN` — **required**, a long random string
-- `TRUST_PROXY` — `1`
-- `PUBLIC_BASE_URL` — `https://repairs.yourdomain.com`
-- Discord vars only if you're also running the bot here (see the note below)
+### 5. Keep the bot alive (cron)
+Passenger idles the app when the website gets no traffic — which would drop the bot's connection to Discord. Keep it warm with a cron ping.
 
-Do **not** upload a `.env` file with secrets; use the cPanel env-var UI. (The app reads real environment variables too, not just `.env`.)
+cPanel → **Cron Jobs** → every 5 minutes:
+```
+*/5 * * * * curl -s https://repairs.yourdomain.com/healthz >/dev/null 2>&1
+```
+discord.js auto-reconnects across the occasional Passenger restart, so this keeps the bot effectively online all weekend. (This is the same trick most "bot on shared hosting" setups use.)
 
-## 4. Install dependencies & start
+### 6. Protect the admin with .htaccess Basic Auth
+This is the "set the password in .htaccess" route. It gates `/admin` **and** `/api/admin` at Apache, so the Node app doesn't need its own token.
 
-- Click **Run NPM Install** (or, in the virtualenv shell: `npm install`).
-- If you enabled the bot and changed commands, run once: `npm run deploy-commands`.
-- Click **Restart**. Passenger keeps the site running and restarts it on requests.
+1. Set env var `ADMIN_AUTH=external` (step 3) and **Restart** the app. The app now trusts Apache for admin auth.
+2. Create the password file `~/repair-zone/.htpasswd`. Easiest options:
+   - **cPanel → Directory Privacy**, add a user (it writes a `.htpasswd` you can point to), or
+   - **Terminal**: `htpasswd -c ~/repair-zone/.htpasswd admin` (prompts for the password), or
+   - **Paste a line** into `~/repair-zone/.htpasswd`. Example encoding user `admin` / password `password123` (⚠️ replace with your own!):
+     ```
+     admin:$apr1$G9yJnd.S$vZgrIkjgF5u5Tyu3MQFnG/
+     ```
+     Generate your own hash: `openssl passwd -apr1 'YOURPASSWORD'` (prefix with `admin:`).
+3. Merge the block from **[`.htaccess.example`](../.htaccess.example)** into the `.htaccess` in your app's **DocumentRoot** (the same file cPanel created with the `Passenger*` directives — keep those). Set `AuthUserFile` to the absolute path of your `.htpasswd` (e.g. `/home/YOURUSER/repair-zone/.htpasswd`).
+4. Visit `/admin` — the browser should prompt for the login. Public pages and the request/borrow forms stay open.
 
-Passenger sets `PORT` (actually a socket) for you; `src/server.js` already listens on `process.env.PORT`.
+### 7. Cloudflare
+1. Point DNS at your Namecheap server IP (A/CNAME), **proxied** (orange cloud).
+2. SSL/TLS: **Full** (or **Full (strict)** once cPanel AutoSSL has a cert).
+3. `TRUST_PROXY=1` (already set) lets rate-limiting see the real client IP through Cloudflare.
+4. Add a cache rule to **bypass cache** for `/api/*` and `/admin*` so the queue is always live. `/css` and `/js` cache fine.
+5. Cloudflare forwards the `Authorization` header, so `.htaccess` Basic Auth works through the proxy.
 
-## 5. Cloudflare
-
-1. Point your domain's nameservers to Cloudflare (or add the DNS record if Cloudflare already manages the domain).
-2. Add an **A/CNAME record** for the subdomain pointing to your Namecheap server IP, **proxied** (orange cloud).
-3. SSL/TLS mode: **Full** (or **Full (strict)** once AutoSSL has issued a cert on cPanel).
-4. Because Cloudflare proxies requests, the app relies on `TRUST_PROXY=1` (already set) to read the real visitor IP for rate-limiting.
-5. Optional caching: create a cache rule to **bypass cache** for `/api/*` and `/admin*` so the queue is always live. Static assets (`/css`, `/js`) cache fine.
-
-## 6. Persist the data file
-
-The live queue + inventory live in `data/db.json`. On cPanel this persists in your app folder between restarts — just don't delete it. Back it up occasionally during the event, and clear it (it contains attendee contact info) after the show.
+### 8. Persist the data
+The live queue + inventory live in `data/db.json` in the app folder; it survives restarts — just don't delete it. Back it up during the event and clear it afterward (it holds attendee contact info).
 
 ---
 
-## 🤖 About the Discord bot on shared hosting
+## Plan B — no Node.js on your plan
 
-The bot needs a **persistent outbound WebSocket** to Discord and must stay running 24/7. Phusion Passenger on shared cPanel is request-driven — it may idle your process out when the website gets no traffic, which drops the bot connection. It also complicates having a single always-on process.
+If your plan really has no *Setup Node.js App*, host the **whole app** (site + API + bot) on an always-on Node host and point Cloudflare DNS at it:
 
-**Recommended split:**
-- **Website + admin panels → cPanel** (what this guide sets up). Leave the Discord vars blank there.
-- **Discord bot → a small always-on host** — a free/cheap tier on Railway, Render (Background Worker), Fly.io, a $5 VPS, or a Raspberry Pi at the booth. Run the same repo there with the Discord vars set.
+- **Render / Railway / Fly.io / a $5 VPS** — deploy the repo, set the env vars, run `npm start`. One service runs everything; the bot and site stay in sync automatically (shared in-process data).
+- These aren't Apache, so **`.htaccess` won't apply** — use the app token (`ADMIN_TOKEN`) or **Cloudflare Access** (Zero Trust) to protect `/admin` instead.
+- You can still keep the domain at Namecheap and just manage DNS through Cloudflare.
 
-If you run the bot separately from the website, point both at the **same data store** (e.g. a shared volume, or later swap `src/db.js` for a hosted database) so the admin panels and the bot see the same requests. Out of the box they each keep their own `data/db.json`; for a single unified queue, run the **whole app in one place** (a VPS/Railway/Render service) instead of splitting it — that's the simplest path if you want the bot and the website fully in sync.
-
-**Simplest overall:** run the entire app (website + bot) on one always-on Node host (Railway/Render/VPS) and just point Cloudflare DNS at it. Use cPanel only if you specifically want the site on your existing Namecheap hosting.
+> Splitting a *static* site onto Stellar while the API/bot live elsewhere is possible but adds CORS and a split data store — not worth it here. Running the one unified app on a Node host is simpler and keeps the bot and website perfectly in sync.

@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────
+#  The Repair Zone — Apache admin protection (cPanel / Namecheap)
+#
+#  Protects /admin AND /api/admin with HTTP Basic Auth at the Apache layer,
+#  so you manage the staff password in .htpasswd instead of the app token.
+#
+#  HOW TO USE
+#  1. In your environment set:  ADMIN_AUTH=external
+#     (the Node app then trusts Apache for admin auth and stops checking a token)
+#  2. Create a .htpasswd file with your staff login — see docs/DEPLOYMENT.md.
+#     Easiest: cPanel → "Directory Privacy", or:  htpasswd -c ~/repair-zone/.htpasswd admin
+#  3. Merge the block below into the .htaccess in your app's DocumentRoot
+#     (the SAME file cPanel created with the Passenger directives — keep those).
+#  4. Set AuthUserFile to the ABSOLUTE path of your .htpasswd.
+#
+#  NOTE: Basic Auth only works when the app runs under Apache (cPanel/Passenger).
+#        On a non-Apache host (Render/Railway/VPS Nginx) use the app token
+#        (ADMIN_TOKEN) or Cloudflare Access instead.
+# ─────────────────────────────────────────────────────────────
+
+AuthType Basic
+AuthName "The Repair Zone — Staff Only"
+AuthUserFile "/home/YOURCPANELUSER/repair-zone/.htpasswd"
+
+# Flag admin URLs — both the pages and the API that feeds them.
+SetEnvIf Request_URI "^/admin(/|$)"      RZ_ADMIN=1
+SetEnvIf Request_URI "^/api/admin(/|$)"  RZ_ADMIN=1
+
+# Public paths pass through; admin paths require a valid login.
+<RequireAny>
+    Require expr "reqenv('RZ_ADMIN') != '1'"
+    Require valid-user
+</RequireAny>

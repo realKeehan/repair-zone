@@ -23,6 +23,10 @@ export const config = {
   publicBaseUrl: (process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, ''),
   trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   adminToken: process.env.ADMIN_TOKEN || '',
+  // When 'external' (or 'htaccess'/'proxy'), the app does NOT check its own
+  // admin token — access to /admin and /api/admin is assumed to be gated
+  // upstream (e.g. Apache Basic Auth via .htaccess on cPanel). See docs/DEPLOYMENT.md.
+  adminAuthExternal: ['external', 'htaccess', 'proxy'].includes((process.env.ADMIN_AUTH || '').toLowerCase()),
 
   discord: {
     botToken: process.env.DISCORD_BOT_TOKEN || '',
@@ -40,8 +44,10 @@ export const discordEnabled = Boolean(config.discord.botToken && config.discord.
 /** Warn loudly about weak/missing security config at startup. */
 export function checkConfig() {
   const warnings = [];
-  if (!config.adminToken || config.adminToken === 'change-me-to-a-long-random-string') {
-    warnings.push('ADMIN_TOKEN is unset or default — the admin panels are effectively open. Set a strong token in .env.');
+  if (config.adminAuthExternal) {
+    warnings.push('ADMIN_AUTH=external — the app is NOT checking an admin token. Make sure .htaccess/proxy Basic Auth protects /admin AND /api/admin, or the admin panels are open.');
+  } else if (!config.adminToken || config.adminToken === 'change-me-to-a-long-random-string') {
+    warnings.push('ADMIN_TOKEN is unset or default and ADMIN_AUTH is not "external" — admin API is locked (503). Set a strong ADMIN_TOKEN, or set ADMIN_AUTH=external and protect /admin with .htaccess.');
   }
   if (!discordEnabled) {
     warnings.push('Discord bot is disabled (DISCORD_BOT_TOKEN / DISCORD_CLIENT_ID not set). The site still works.');

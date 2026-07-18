@@ -7,16 +7,16 @@ let RENTALS = [];
 
 /* ── auth ── */
 async function boot() {
-  if (TOKEN) {
-    try {
-      await RZ.api('/api/admin/ping', { token: TOKEN });
-      return showPanel();
-    } catch {
+  try {
+    await RZ.api('/api/admin/ping', { token: TOKEN });
+    return showPanel();
+  } catch {
+    if (TOKEN) {
       TOKEN = '';
       localStorage.removeItem('rz-admin-token');
     }
+    RZ.el('gate').style.display = '';
   }
-  RZ.el('gate').style.display = '';
 }
 function showPanel() {
   RZ.el('gate').style.display = 'none';

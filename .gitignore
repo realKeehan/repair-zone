@@ -6,6 +6,10 @@ node_modules/
 .env.local
 *.local
 
+# Apache auth — never commit real credentials or a host-specific .htaccess
+.htpasswd
+/.htaccess
+
 # Runtime data (live queue + inventory) — do not commit
 data/db.json
 

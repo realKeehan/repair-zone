@@ -18,11 +18,15 @@ function requireFields(obj, fields) {
   return missing;
 }
 
-/** Admin auth: constant-time-ish check of the x-admin-token header. */
+/** Admin auth. Two modes:
+ *  - external (ADMIN_AUTH=external): access is gated upstream by Apache/.htaccess
+ *    Basic Auth, so the app trusts the request and lets it through.
+ *  - token (default): require a matching x-admin-token header/query. */
 function requireAdmin(req, res, next) {
+  if (config.adminAuthExternal) return next();
   const token = req.get('x-admin-token') || req.query.token || '';
   if (!config.adminToken) {
-    return res.status(503).json({ error: 'Admin token not configured on the server.' });
+    return res.status(503).json({ error: 'Admin auth not configured. Set ADMIN_TOKEN, or set ADMIN_AUTH=external and protect /admin with .htaccess.' });
   }
   if (token !== config.adminToken) {
     return res.status(401).json({ error: 'Unauthorized. Provide a valid admin token.' });

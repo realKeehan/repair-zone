@@ -9,16 +9,18 @@ let editingId = null;
 
 /* ── auth gate ── */
 async function boot() {
-  if (TOKEN) {
-    try {
-      await RZ.api('/api/admin/ping', { token: TOKEN });
-      return showPanel();
-    } catch {
+  // Always try a ping first (token may be empty). If the server gates admin
+  // upstream (.htaccess/proxy), this succeeds with no token and we skip the gate.
+  try {
+    await RZ.api('/api/admin/ping', { token: TOKEN });
+    return showPanel();
+  } catch {
+    if (TOKEN) {
       TOKEN = '';
       localStorage.removeItem('rz-admin-token');
     }
+    showGate();
   }
-  showGate();
 }
 
 function showGate() {
