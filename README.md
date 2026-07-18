@@ -16,7 +16,7 @@ Attendees submit repair requests from the website or straight from Discord (a bu
 
 **On Discord**
 - 🔘 A persistent **"Request a Repair" button**, posted as a **pinned forum post** in your forum channel (`/panel`)
-- 🪟 The button opens a **modal form** with a **request-type picker** (Repair, 3D Print, Electronics, Cosplay, Other), a description, **phone number**, **booth ID**, and a **photo upload** (up to 5 files — Discord modals support file uploads via the new Label/Components-v2 API)
+- 🪟 The button opens a **modal form** with a **request-type picker** (Repair, 3D Print, Electronics, Other), a description, **phone number**, **booth ID**, and a **photo upload** (up to 5 files — Discord modals support file uploads via the new Label/Components-v2 API)
 - 🧵 On submit, the bot **creates a new forum post**, **applies the matching tag** (e.g. `3D Print`), **pings the requester**, and **attaches their photos**
 - 🏷️ Auto-provisions the request-type **forum tags** on startup so posts are filterable
 - 🛠️ Volunteer slash commands: `/queue`, `/claim`, `/status`, `/tools`
@@ -108,7 +108,7 @@ The bot is optional. To enable it:
         │  (attendee taps)
         ▼
    Modal form:
-     • What do you need?  (Repair / 3D Print / Electronics / Cosplay / Other)
+     • What do you need?  (Repair / 3D Print / Electronics / Other)
      • Describe the request
      • Phone number
      • Booth ID / location

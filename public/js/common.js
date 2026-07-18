@@ -46,7 +46,6 @@ const RZ = {
         repair: { e: '🔧', l: 'General Repair' },
         '3dprint': { e: '🖨️', l: '3D Print' },
         electronics: { e: '⚡', l: 'Electronics' },
-        cosplay: { e: '🧵', l: 'Cosplay' },
         other: { e: '❓', l: 'Other' },
       }[v] || { e: '🔧', l: v || 'Repair' }
     );

@@ -24,7 +24,6 @@ export const REPAIR_TYPES = [
   { value: 'repair', label: 'General Repair', emoji: '🔧', tag: 'Repair' },
   { value: '3dprint', label: '3D Print Request', emoji: '🖨️', tag: '3D Print' },
   { value: 'electronics', label: 'Electronics / Soldering', emoji: '⚡', tag: 'Electronics' },
-  { value: 'cosplay', label: 'Cosplay / Costume', emoji: '🧵', tag: 'Cosplay' },
   { value: 'other', label: 'Other', emoji: '❓', tag: 'Other' },
 ];
 export const REPAIR_TYPE_VALUES = REPAIR_TYPES.map((t) => t.value);
