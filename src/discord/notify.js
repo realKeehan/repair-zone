@@ -32,14 +32,16 @@ export function statusLabel(status) {
 
 export function buildRepairEmbed(repair) {
   const meta = STATUS_META[repair.status] || STATUS_META.open;
+  const type = db.repairTypeMeta(repair.type);
   const embed = new EmbedBuilder()
     .setTitle(`Repair #${repair.id} — ${repair.item}`)
     .setColor(meta.color)
     .addFields(
       { name: 'Requester', value: repair.name || '—', inline: true },
       { name: 'Booth / Location', value: repair.boothId || '—', inline: true },
+      { name: 'Type', value: `${type.emoji} ${type.label}`, inline: true },
       { name: 'Status', value: meta.label, inline: true },
-      { name: 'The issue', value: (repair.issue || '—').slice(0, 1024) },
+      { name: 'The request', value: (repair.issue || '—').slice(0, 1024) },
     )
     .setFooter({ text: `The Repair Zone · via ${repair.source === 'discord' ? 'Discord' : 'website'}` })
     .setTimestamp(new Date(repair.createdAt));
@@ -52,38 +54,90 @@ export function buildRepairEmbed(repair) {
   return embed;
 }
 
-/**
- * Create a forum thread for a repair request and record the thread id back on
- * the repair. Used by both the website submission path and the Discord modal.
- * `mentionUserId` — if provided, the requester is pinged in the starter message.
- */
-export async function createForumThreadForRepair(repair, mentionUserId = null) {
+async function fetchForum() {
   if (!ready || !client || !config.discord.forumChannelId) return null;
   const channel = await client.channels.fetch(config.discord.forumChannelId).catch(() => null);
   if (!channel || channel.type !== ChannelType.GuildForum) {
-    console.warn('[discord] DISCORD_FORUM_CHANNEL_ID is not a forum channel; skipping thread creation.');
+    console.warn('[discord] DISCORD_FORUM_CHANNEL_ID is not a forum channel; skipping forum post.');
     return null;
   }
+  return channel;
+}
 
-  const title = `#${repair.id} · ${repair.item} — ${repair.name}`.slice(0, 96);
+/**
+ * Make sure the forum has a tag for each request type (e.g. "3D Print").
+ * Best-effort and non-destructive: only adds missing tags, never removes.
+ * Needs Manage Channels; if that's missing we just skip (posts still work).
+ */
+export async function ensureForumTags() {
+  const forum = await fetchForum();
+  if (!forum) return;
+  try {
+    const existing = forum.availableTags || [];
+    const have = new Set(existing.map((t) => t.name.toLowerCase()));
+    const missing = db.REPAIR_TYPES.filter((t) => !have.has(t.tag.toLowerCase()));
+    if (!missing.length || existing.length + missing.length > 20) return;
+    const next = [
+      ...existing.map((t) => ({ id: t.id, name: t.name, moderated: t.moderated, emoji: t.emoji })),
+      ...missing.map((t) => ({ name: t.tag, moderated: false, emoji: t.emoji })),
+    ];
+    await forum.setAvailableTags(next);
+    console.log(`[discord] Ensured forum tags: added ${missing.map((t) => t.tag).join(', ')}`);
+  } catch (err) {
+    console.warn('[discord] Could not auto-create forum tags (need Manage Channels?):', err.message);
+  }
+}
+
+function tagIdForType(forum, type) {
+  const meta = db.repairTypeMeta(type);
+  const tag = (forum.availableTags || []).find((t) => t.name.toLowerCase() === meta.tag.toLowerCase());
+  return tag ? [tag.id] : undefined;
+}
+
+/**
+ * Create a FORUM POST for a repair request and record the post id on the repair.
+ * Used by both the website submission path and the Discord modal.
+ *  - mentionUserId: if set, the requester is pinged in the starter message.
+ *  - files: array of attachments/URLs (photos the user uploaded) to attach.
+ */
+export async function createForumPostForRepair(repair, { mentionUserId = null, files = [] } = {}) {
+  const forum = await fetchForum();
+  if (!forum) return null;
+
+  const type = db.repairTypeMeta(repair.type);
+  const title = `${type.emoji} #${repair.id} · ${repair.item} — ${repair.name}`.slice(0, 96);
   const mention = mentionUserId ? `<@${mentionUserId}> ` : '';
+  const askPhotos = files.length ? '' : '\n📎 **Reply here with photos or files** of the item — it really helps us diagnose.';
   const content =
-    `${mention}Thanks — your repair request is logged! A Repair Zone volunteer will pick it up shortly.\n` +
-    `📎 **Reply in this thread with photos or files** of the item and the problem — it really helps us diagnose.`;
+    `${mention}Thanks — your repair request is logged! A Repair Zone volunteer will pick it up shortly.` + askPhotos;
 
-  // Optionally match a forum tag whose name looks like "open".
-  const openTag = channel.availableTags?.find((t) => /open|new|request/i.test(t.name));
-  const thread = await channel.threads.create({
-    name: title,
-    autoArchiveDuration: 1440,
-    message: { content, embeds: [buildRepairEmbed(repair)] },
-    appliedTags: openTag ? [openTag.id] : undefined,
-  });
+  let post;
+  try {
+    post = await forum.threads.create({
+      name: title,
+      autoArchiveDuration: 1440,
+      appliedTags: tagIdForType(forum, repair.type),
+      message: { content, embeds: [buildRepairEmbed(repair)], files: files.length ? files : undefined },
+    });
+  } catch (err) {
+    // Retry once without files (e.g. an upload URL expired) so the post still lands.
+    if (files.length) {
+      console.warn('[discord] Forum post with files failed, retrying without:', err.message);
+      post = await forum.threads.create({
+        name: title,
+        autoArchiveDuration: 1440,
+        appliedTags: tagIdForType(forum, repair.type),
+        message: { content: content + '\n_(couldn\'t attach uploaded files — please re-post them here)_', embeds: [buildRepairEmbed(repair)] },
+      });
+    } else {
+      throw err;
+    }
+  }
 
   db.updateRepair(repair.id, {
-    discord: { threadId: thread.id, guildId: channel.guildId, userId: mentionUserId || repair.discord?.userId || null },
+    discord: { threadId: post.id, guildId: forum.guildId, userId: mentionUserId || repair.discord?.userId || null },
   });
-  return thread;
+  return post;
 }
 
 /** Send a short log line to the staff log channel or webhook (whichever is set). */
@@ -92,7 +146,6 @@ export async function sendLog(text, embed = null) {
   if (text) payload.content = text;
   if (embed) payload.embeds = [embed];
 
-  // Prefer a bot channel if available; fall back to a webhook.
   if (ready && client && config.discord.logChannelId) {
     const ch = await client.channels.fetch(config.discord.logChannelId).catch(() => null);
     if (ch && ch.isTextBased()) {
@@ -113,8 +166,8 @@ export async function sendLog(text, embed = null) {
 
 export async function onRepairCreated(repair) {
   if (!discordEnabled) return;
-  // Website submissions have no Discord user to ping.
-  await createForumThreadForRepair(repair, repair.discord?.userId || null);
+  // Website submissions have no Discord user to ping and no in-modal uploads.
+  await createForumPostForRepair(repair, { mentionUserId: repair.discord?.userId || null });
   await sendLog(`🔧 New repair request **#${repair.id}** — ${repair.item} (${repair.name})`);
 }
 
@@ -126,16 +179,15 @@ export async function onRepairUpdated(repair) {
   if (!thread) return;
 
   await thread
-    .send({ content: `**Status → ${statusLabel(repair.status)}**${repair.assignee ? ` · handled by <@${repair.assignee}>` : ''}` })
+    .send({ content: `**Status → ${statusLabel(repair.status)}**${repair.assignee ? ` · handled by ${/^\d+$/.test(String(repair.assignee)) ? `<@${repair.assignee}>` : repair.assignee}` : ''}` })
     .catch(() => {});
 
-  // Archive/lock the thread once the item is done and gone.
   if (repair.status === 'picked_up' && thread.setArchived) {
     await thread.setArchived(true).catch(() => {});
   }
 }
 
-export async function onRentalCreated(rental, tool) {
+export async function onRentalCreated(rental) {
   if (!discordEnabled) return;
   const embed = new EmbedBuilder()
     .setTitle(`🧰 Tool checked out — ${rental.toolName}`)

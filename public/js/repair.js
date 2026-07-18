@@ -9,6 +9,7 @@ form.addEventListener('submit', async (e) => {
   btn.textContent = 'Submitting…';
 
   const body = {
+    type: RZ.el('type').value,
     name: RZ.el('name').value,
     phone: RZ.el('phone').value,
     boothId: RZ.el('boothId').value,

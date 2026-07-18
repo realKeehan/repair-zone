@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview Sheet · Repair Zone Admin</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+  <style>
+    /* Spreadsheet-dense overrides, scoped to this page */
+    .sheet table { min-width: 900px; font-size: .86rem; }
+    .sheet th, .sheet td { padding: 7px 10px; white-space: nowrap; }
+    .sheet td.wrap { white-space: normal; max-width: 340px; }
+    .sheet tbody tr:nth-child(even) { background: var(--surface-2); }
+    .tabbar { display: inline-flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--border); padding: 4px; border-radius: 10px; }
+    .tabbar button { border: none; background: none; color: var(--muted); font-weight: 700; padding: 8px 16px; border-radius: 7px; cursor: pointer; font-family: inherit; }
+    .tabbar button.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  </style>
+</head>
+<body>
+  <div class="stripe"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="/admin/sheet">
+        <svg class="logo" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="11" fill="#f97316"/><path d="M31.5 15.5a6 6 0 0 1-7.8 7.8L15 32l1 1 8.7-8.7a6 6 0 0 1 7.8-7.8l-3.2 3.2 1.8 1.8 3.2-3.2Z" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="17" cy="31" r="2" fill="#f97316"/></svg>
+        Repair Zone <span class="muted" style="font-weight:600;">· Admin</span>
+      </a>
+      <div class="nav-links">
+        <a href="/admin/sheet">Overview</a>
+        <a href="/admin">Repairs</a>
+        <a href="/admin/borrowing">Borrowing</a>
+        <a href="#" id="logout" style="display:none;">Sign out</a>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container" id="gate" style="display:none;">
+    <div class="form-card gate">
+      <h2 style="margin-top:0;">🔒 Staff sign-in</h2>
+      <p class="muted">Enter the admin token to view the overview sheet.</p>
+      <div class="notice" id="gate-notice"></div>
+      <div class="field"><label for="token">Admin token</label><input type="password" id="token" placeholder="••••••••••••" /></div>
+      <button class="btn btn-primary" id="gate-btn" style="width:100%;">Sign in</button>
+    </div>
+  </main>
+
+  <main class="container sheet" id="panel" style="display:none;padding-top:28px;padding-bottom:60px;max-width:1300px;">
+    <div class="toolbar">
+      <h1 style="margin:0;font-size:1.5rem;">📊 Overview</h1>
+      <div class="tabbar" id="tabs" style="margin-left:16px;">
+        <button data-tab="requests" class="active">Requests</button>
+        <button data-tab="rentals">Rentals</button>
+        <button data-tab="inventory">Inventory</button>
+      </div>
+      <div class="spacer"></div>
+      <input type="text" id="search" placeholder="Filter…" style="max-width:220px;" />
+      <button class="btn btn-ghost btn-sm" onclick="exportCsv()">⬇ Export CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="load()">↻</button>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <div class="notice" id="notice"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"><tr><td class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="muted" style="font-size:.85rem;margin-top:12px;" id="count"></p>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/sheet.js"></script>
+</body>
+</html>

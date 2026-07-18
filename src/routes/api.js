@@ -42,7 +42,7 @@ const publicLimiter = rateLimit({
 /* ── public: config surface for the front-end ────────────── */
 
 apiRouter.get('/meta', (req, res) => {
-  res.json({ discordEnabled, stats: db.stats() });
+  res.json({ discordEnabled, stats: db.stats(), repairTypes: db.REPAIR_TYPES });
 });
 
 /* ── public: tools (live availability for the borrow form) ─ */
@@ -65,6 +65,7 @@ apiRouter.post('/repairs', publicLimiter, async (req, res) => {
   const body = req.body || {};
   const data = {
     source: 'web',
+    type: str(body.type, 20),
     name: str(body.name, 120),
     phone: str(body.phone, 40),
     contact: str(body.contact, 120),

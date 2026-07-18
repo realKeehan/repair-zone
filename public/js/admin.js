@@ -94,11 +94,12 @@ function render() {
   body.innerHTML = rows
     .map((r) => {
       const opts = STATUSES.map((s) => `<option value="${s}" ${s === r.status ? 'selected' : ''}>${RZ.statusLabel(s)}</option>`).join('');
-      const thread = r.discord?.threadId ? ` <span class="muted mono">· thread</span>` : '';
+      const thread = r.discord?.threadId ? ` <span class="muted mono">· post</span>` : '';
+      const tm = RZ.typeMeta(r.type);
       const contact = [r.phone, r.contact].filter(Boolean).map(RZ.esc).join('<br>') || '<span class="muted">—</span>';
       return `<tr>
         <td class="mono">#${r.id}</td>
-        <td><strong>${RZ.esc(r.item)}</strong>${thread}<br><span class="muted">${RZ.esc((r.issue || '').slice(0, 80))}${r.issue && r.issue.length > 80 ? '…' : ''}</span></td>
+        <td><span title="${RZ.esc(tm.l)}">${tm.e}</span> <strong>${RZ.esc(r.item)}</strong>${thread}<br><span class="muted">${RZ.esc((r.issue || '').slice(0, 80))}${r.issue && r.issue.length > 80 ? '…' : ''}</span></td>
         <td>${RZ.esc(r.name)}${r.boothId ? `<br><span class="muted">${RZ.esc(r.boothId)}</span>` : ''}</td>
         <td>${contact}</td>
         <td><select onchange="setStatus(${r.id}, this.value)" data-status>${opts}</select></td>

@@ -5,9 +5,23 @@ import 'dotenv/config';
  * Everything Discord-related is optional: the website + admin panels run
  * fine without a bot token. Discord features simply switch off if unconfigured.
  */
+/**
+ * Express `trust proxy` value. Behind Cloudflare + cPanel/Passenger the real
+ * client IP arrives in X-Forwarded-For; trusting the proxy makes rate-limiting
+ * and logging see the right IP. `1` trusts one hop (the typical cPanel setup).
+ */
+function parseTrustProxy(v) {
+  if (v === undefined || v === '') return 1;
+  if (v === 'true') return true;
+  if (v === 'false') return false;
+  const n = Number(v);
+  return Number.isNaN(n) ? v : n;
+}
+
 export const config = {
   port: Number(process.env.PORT) || 3000,
   publicBaseUrl: (process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, ''),
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   adminToken: process.env.ADMIN_TOKEN || '',
 
   discord: {

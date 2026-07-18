@@ -40,6 +40,17 @@ const RZ = {
   pill(status) {
     return `<span class="pill ${RZ.esc(status)}">${RZ.esc(RZ.statusLabel(status))}</span>`;
   },
+  typeMeta(v) {
+    return (
+      {
+        repair: { e: '🔧', l: 'General Repair' },
+        '3dprint': { e: '🖨️', l: '3D Print' },
+        electronics: { e: '⚡', l: 'Electronics' },
+        cosplay: { e: '🧵', l: 'Cosplay' },
+        other: { e: '❓', l: 'Other' },
+      }[v] || { e: '🔧', l: v || 'Repair' }
+    );
+  },
   timeAgo(iso) {
     if (!iso) return '—';
     const d = new Date(iso);

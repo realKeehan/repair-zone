@@ -46,6 +46,17 @@
 
       <form id="repair-form">
         <div class="field">
+          <label for="type">What do you need? <span class="req">*</span></label>
+          <select id="type" name="type" required>
+            <option value="repair">🔧 General Repair</option>
+            <option value="3dprint">🖨️ 3D Print Request</option>
+            <option value="electronics">⚡ Electronics / Soldering</option>
+            <option value="cosplay">🧵 Cosplay / Costume</option>
+            <option value="other">❓ Other</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label for="name">Your name <span class="req">*</span></label>
           <input type="text" id="name" name="name" autocomplete="name" required maxlength="120" />
         </div>
@@ -84,7 +95,7 @@
         <div class="field">
           <label class="check">
             <input type="checkbox" id="agreedTerms" name="agreedTerms" required />
-            <span>I agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a>. I understand repairs are free, provided as-is with no warranty, and that I'm responsible for backing up my own data. <span class="req">*</span></span>
+            <span>I have read and agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a>. I understand repairs are free, provided as-is with no warranty, that I'm responsible for backing up my own data, and that <strong>I'll sign the liability waiver on paper at the booth</strong> before any work begins. <span class="req">*</span></span>
           </label>
         </div>
 

@@ -15,6 +15,23 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 export const REPAIR_STATUSES = ['open', 'claimed', 'in_progress', 'done', 'unable', 'picked_up'];
 export const TOOL_STATUSES = ['available', 'out', 'maintenance'];
 
+/**
+ * Request types. `tag` is the forum tag name the bot creates/applies so posts
+ * are filterable in Discord (e.g. "3D Print Request"). Keep values stable — the
+ * website <select> and the Discord modal both send these.
+ */
+export const REPAIR_TYPES = [
+  { value: 'repair', label: 'General Repair', emoji: '🔧', tag: 'Repair' },
+  { value: '3dprint', label: '3D Print Request', emoji: '🖨️', tag: '3D Print' },
+  { value: 'electronics', label: 'Electronics / Soldering', emoji: '⚡', tag: 'Electronics' },
+  { value: 'cosplay', label: 'Cosplay / Costume', emoji: '🧵', tag: 'Cosplay' },
+  { value: 'other', label: 'Other', emoji: '❓', tag: 'Other' },
+];
+export const REPAIR_TYPE_VALUES = REPAIR_TYPES.map((t) => t.value);
+export function repairTypeMeta(value) {
+  return REPAIR_TYPES.find((t) => t.value === value) || REPAIR_TYPES[0];
+}
+
 /** Default inventory so the borrow form has something to show on first run. */
 const SEED_TOOLS = [
   { name: 'Soldering Iron (temp-controlled)', category: 'Electronics', requiresTraining: true },
@@ -92,6 +109,7 @@ export function createRepair(data) {
     createdAt: nowISO(),
     updatedAt: nowISO(),
     source: data.source || 'web',
+    type: REPAIR_TYPE_VALUES.includes(data.type) ? data.type : 'repair',
     name: data.name,
     phone: data.phone || '',
     contact: data.contact || '',
@@ -120,7 +138,7 @@ export function getRepair(id) {
 export function updateRepair(id, patch) {
   const r = getRepair(id);
   if (!r) return null;
-  const allowed = ['status', 'assignee', 'notes', 'phone', 'contact', 'boothId', 'item', 'issue'];
+  const allowed = ['status', 'assignee', 'notes', 'phone', 'contact', 'boothId', 'item', 'issue', 'type'];
   for (const key of allowed) {
     if (key in patch && patch[key] !== undefined) r[key] = patch[key];
   }

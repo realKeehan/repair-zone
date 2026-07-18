@@ -10,6 +10,9 @@ const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
 const app = express();
 app.disable('x-powered-by');
+// Trust the reverse proxy (Cloudflare / cPanel Passenger) so req.ip and the
+// rate limiter use the real client IP from X-Forwarded-For.
+app.set('trust proxy', config.trustProxy);
 
 // Helmet with a CSP that allows our self-hosted assets + inline styles/scripts.
 app.use(
