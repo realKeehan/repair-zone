@@ -111,6 +111,9 @@ h1, h2, h3 { line-height: 1.2; letter-spacing: -0.02em; }
 .theme-toggle:hover { background: var(--surface); }
 .theme-toggle svg { display: block; }
 
+/* Inline Bootstrap Icons — scale with the surrounding font-size, inherit color. */
+.bi { display: inline-block; width: 1em; height: 1em; fill: currentColor; vertical-align: -0.125em; }
+
 /* ── Buttons ── */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
