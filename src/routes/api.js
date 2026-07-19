@@ -204,16 +204,21 @@ apiRouter.get('/admin/rentals', requireAdmin, (req, res) => {
 });
 
 apiRouter.post('/admin/rentals', requireAdmin, (req, res) => {
-  // Staff can check a tool out on someone's behalf.
+  // Staff can check a tool out on someone's behalf. Two ways to name the tool:
+  //  - toolId: pick an existing inventory record (flips it to "out"), or
+  //  - toolName: free-text (manual tracking, no inventory record needed).
   const body = req.body || {};
   const data = {
-    toolId: Number(body.toolId),
+    toolId: body.toolId ? Number(body.toolId) : null,
+    toolName: str(body.toolName, 160),
     name: str(body.name, 120),
     boothId: str(body.boothId, 60),
     phone: str(body.phone, 40),
     agreedTerms: true,
   };
-  if (!data.toolId || !data.name) return res.status(400).json({ error: 'Tool and borrower name are required.' });
+  if (!data.name || (!data.toolId && !data.toolName)) {
+    return res.status(400).json({ error: 'Tool and borrower name are required.' });
+  }
   try {
     const { rental, tool } = db.createRental(data);
     notify.onRentalCreated(rental, tool).catch(() => {});

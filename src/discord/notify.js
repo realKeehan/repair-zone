@@ -30,6 +30,52 @@ export function statusLabel(status) {
   return STATUS_META[status]?.label || status;
 }
 
+/**
+ * Heart-react ticket convention, mirrored from the original Repair Zone system:
+ *   💛 actively being worked on   💚 closed – success
+ *   🩶 closed – partially resolved 💗 closed – unresolved
+ * Each forum post carries a SINGLE heart reflecting the ticket's state. An
+ * unclaimed/"active" ticket (status "open") has no heart, matching the manual
+ * convention where you claim a reaction-less ticket by adding 💛.
+ */
+const STATUS_HEART = {
+  claimed: '💛',
+  in_progress: '💛',
+  done: '💚',
+  picked_up: '💚',
+  unable: '💗',
+  // 'open' → no reaction; 🩶 (partially resolved) has no matching status today.
+};
+const ALL_HEARTS = ['💛', '💚', '🩶', '💗'];
+
+export function statusHeart(status) {
+  return STATUS_HEART[status] || null;
+}
+
+/**
+ * Make the forum post's heart reaction match the ticket status: remove any heart
+ * the bot previously left that isn't current, then add the right one. Best-effort
+ * (needs Add Reactions on the forum) — never blocks a status update if it fails.
+ */
+async function syncStatusHeart(thread, status) {
+  try {
+    if (!thread.fetchStarterMessage) return;
+    const starter = await thread.fetchStarterMessage().catch(() => null);
+    if (!starter) return;
+    const meId = thread.client.user.id;
+    const target = STATUS_HEART[status] || null;
+
+    for (const heart of ALL_HEARTS) {
+      if (heart === target) continue;
+      const reaction = starter.reactions.cache.find((r) => r.emoji.name === heart);
+      if (reaction) await reaction.users.remove(meId).catch(() => {});
+    }
+    if (target) await starter.react(target).catch(() => {});
+  } catch (err) {
+    console.warn('[discord] Could not sync ticket heart:', err.message);
+  }
+}
+
 export function buildRepairEmbed(repair) {
   const meta = STATUS_META[repair.status] || STATUS_META.open;
   const type = db.repairTypeMeta(repair.type);
@@ -179,6 +225,9 @@ export async function onRepairUpdated(repair) {
   await thread
     .send({ content: `**Status → ${statusLabel(repair.status)}**${repair.assignee ? ` · handled by ${/^\d+$/.test(String(repair.assignee)) ? `<@${repair.assignee}>` : repair.assignee}` : ''}` })
     .catch(() => {});
+
+  // Reflect the status as the ticket's heart reaction (💛 / 💚 / 💗).
+  await syncStatusHeart(thread, repair.status);
 
   if (repair.status === 'picked_up' && thread.setArchived) {
     await thread.setArchived(true).catch(() => {});

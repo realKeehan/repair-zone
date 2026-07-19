@@ -31,23 +31,6 @@ export function repairTypeMeta(value) {
   return REPAIR_TYPES.find((t) => t.value === value) || REPAIR_TYPES[0];
 }
 
-/** Default inventory so the borrow form has something to show on first run. */
-const SEED_TOOLS = [
-  { name: 'Soldering Iron (temp-controlled)', category: 'Electronics', requiresTraining: true },
-  { name: 'Hot Air Rework Station', category: 'Electronics', requiresTraining: true },
-  { name: 'Digital Multimeter', category: 'Electronics', requiresTraining: false },
-  { name: 'Bench Power Supply', category: 'Electronics', requiresTraining: true },
-  { name: 'Precision Screwdriver Set', category: 'Hand tools', requiresTraining: false },
-  { name: 'iFixit Pro Tech Toolkit', category: 'Hand tools', requiresTraining: false },
-  { name: 'Heat Gun', category: 'Hand tools', requiresTraining: true },
-  { name: 'Hot Glue Gun', category: 'Hand tools', requiresTraining: false },
-  { name: 'Rotary Tool (Dremel)', category: 'Power tools', requiresTraining: true },
-  { name: 'Cordless Drill / Driver', category: 'Power tools', requiresTraining: true },
-  { name: 'Digital Calipers', category: 'Measurement', requiresTraining: false },
-  { name: 'Helping Hands + Magnifier', category: 'Electronics', requiresTraining: false },
-  { name: 'Hedron Resonance Amplifier', category: 'Experimental', requiresTraining: true },
-];
-
 function nowISO() {
   return new Date().toISOString();
 }
@@ -73,23 +56,10 @@ function ensureLoaded() {
       db = emptyDb();
     }
   }
-  if (db.tools.length === 0) {
-    for (const t of SEED_TOOLS) {
-      db.counters.tool += 1;
-      db.tools.push({
-        id: db.counters.tool,
-        name: t.name,
-        category: t.category,
-        requiresTraining: Boolean(t.requiresTraining),
-        status: 'available',
-        borrowerName: null,
-        borrowerBooth: null,
-        checkedOutAt: null,
-        rentalId: null,
-        notes: '',
-      });
-    }
-  }
+  // No seed inventory: the booth tracks tools by free-text entry (borrow form +
+  // manual staff checkout) rather than a maintained "live list". Starting empty
+  // also means deleted tools stay deleted across restarts — a non-empty seed
+  // used to reappear whenever inventory hit zero (e.g. Passenger app restarts).
   save();
 }
 
@@ -283,6 +253,13 @@ export function stats() {
       total: db.tools.length,
       available: db.tools.filter((t) => t.status === 'available').length,
       out: db.tools.filter((t) => t.status === 'out').length,
+    },
+    // Rental-based counts work whether or not there's a maintained inventory:
+    // free-text checkouts (no tool record) are still counted here.
+    rentals: {
+      total: db.rentals.length,
+      out: db.rentals.filter((r) => r.status === 'out').length,
+      returned: db.rentals.filter((r) => r.status === 'returned').length,
     },
   };
 }

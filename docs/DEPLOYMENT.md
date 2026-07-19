@@ -47,6 +47,33 @@ cPanel → **Cron Jobs** → every 5 minutes:
 ```
 discord.js auto-reconnects across the occasional Passenger restart, so this keeps the bot effectively online all weekend. (This is the same trick most "bot on shared hosting" setups use.)
 
+#### Bot shows **offline** / commands say "did not respond"?
+
+Slash commands are registered by a one-time REST call, so they still **appear** in
+Discord even when nothing is running to answer them — an offline bot and "the
+application did not respond" are the same root cause: no live process is connected
+to the gateway. Work through this:
+
+1. **Is the app actually running?** cPanel → *Setup Node.js App* → the app should be
+   **started**. Restart it and watch the log for `[discord] Logged in as … — online`.
+   No such line = it never connected.
+2. **Is more than one instance running?** An old process left over from before a
+   redeploy can hold the token's session while your new code sits idle. In *Terminal*,
+   `ps -u $USER | grep node` — kill strays, then Restart so there's exactly one.
+3. **Did it crash on boot?** Look for `[discord] Bot failed to start` or
+   `[discord] client error` / `gateway error` in the log. A bad `DISCORD_BOT_TOKEN`
+   or a `discord.js` older than **14.27** (the modal needs the newer builders —
+   check with `npm ls discord.js`) will take the bot offline.
+4. **Is the cron ping actually set?** Without step 5's cron, Passenger idles the app
+   and the bot drops offline between visits. Confirm the cron exists and the
+   `/healthz` URL returns `{"ok":true}`.
+5. **Still offline on shared hosting?** Passenger is request-driven and never
+   guarantees a persistent WebSocket. If the cron trick isn't reliable enough, run
+   the bot on an always-on host — see **[Plan B](#plan-b--no-nodejs-on-your-plan)**.
+
+> Full bot setup, the token/`Authentication failed` fixes, and a **step-by-step
+> server-migration checklist** live in **[BOT-SETUP.md](./BOT-SETUP.md)**.
+
 ### 6. Protect the admin with .htaccess Basic Auth
 This is the "set the password in .htaccess" route. It gates `/admin` **and** `/api/admin` at Apache, so the Node app doesn't need its own token.
 

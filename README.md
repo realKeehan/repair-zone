@@ -11,7 +11,7 @@ Attendees submit repair requests from the website or straight from Discord (a bu
 **For attendees (public site)**
 - 🏠 Landing page explaining the booth, services, and how it works
 - 📝 **Repair request form** — no need to wait in line at the booth
-- 🧰 **Borrow-a-tool page** with a **live, auto-filled inventory list** showing each tool's real-time status (available / out / maintenance); unavailable tools are disabled so you can't double-book
+- 🧰 **Borrow-a-tool page** — attendees type what they're taking and agree to the rental terms; each checkout is logged so staff can track who has what (no fixed inventory list to maintain — tools are entered free-text and tracked manually)
 - 📜 Full **Terms & Conditions** (repairs + tool rentals), mirrored from the printed forms
 
 **On Discord**
@@ -135,6 +135,10 @@ The bot is optional. To enable it:
 | `/status id:<#> to:<status>` | Update a request's status (also posts to its thread) |
 | `/tools` | Show tool inventory & availability |
 
+Each forum ticket also carries a **heart reaction** that reflects its status
+(💛 working · 💚 success · 🩶 partial · 💗 unresolved). See
+**[docs/TICKET-CLAIMING.md](docs/TICKET-CLAIMING.md)** for the full convention.
+
 ---
 
 ## ⚙️ Configuration
@@ -182,6 +186,8 @@ repair-zone/
 ├── data/                      # db.json lives here at runtime (gitignored)
 ├── docs/
 │   ├── DEPLOYMENT.md          # Namecheap cPanel + Cloudflare guide
+│   ├── BOT-SETUP.md           # running & moving the Discord bot (+ cPanel gotchas)
+│   ├── TICKET-CLAIMING.md     # heart-react ticket convention (+ reference image)
 │   └── *.pdf                  # original printed T&C / rental agreements
 └── .env.example
 ```

@@ -1,16 +1,37 @@
 /* Shared helpers used across every page. */
 
 // ── Theme toggle (persisted) ──
+// localStorage access can THROW in privacy-restricted / embedded browser
+// contexts (partitioned storage, blocked cookies, some webviews). Guard every
+// access so a storage exception can never stop `toggleTheme` from being defined
+// — otherwise the header button would silently do nothing.
 (function initTheme() {
-  const saved = localStorage.getItem('rz-theme');
+  const store = {
+    get(k) {
+      try {
+        return localStorage.getItem(k);
+      } catch {
+        return null;
+      }
+    },
+    set(k, v) {
+      try {
+        localStorage.setItem(k, v);
+      } catch {
+        /* storage unavailable — theme still toggles for this session */
+      }
+    },
+  };
+  const prefersDark = () => Boolean(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const saved = store.get('rz-theme');
   if (saved) document.documentElement.setAttribute('data-theme', saved);
+
   window.toggleTheme = function () {
-    const cur =
-      document.documentElement.getAttribute('data-theme') ||
-      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const cur = document.documentElement.getAttribute('data-theme') || (prefersDark() ? 'dark' : 'light');
     const next = cur === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('rz-theme', next);
+    store.set('rz-theme', next);
   };
 })();
 

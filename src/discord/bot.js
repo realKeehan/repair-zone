@@ -14,6 +14,7 @@ import {
   FileUploadBuilder,
   EmbedBuilder,
   MessageFlags,
+  ActivityType,
 } from 'discord.js';
 import { config } from '../config.js';
 import * as db from '../db.js';
@@ -25,7 +26,6 @@ const IDS = {
   modal: 'rz:request:modal',
   f_type: 'type',
   f_desc: 'desc',
-  f_phone: 'phone',
   f_booth: 'booth',
   f_photos: 'photos',
 };
@@ -63,13 +63,6 @@ function buildRequestModal() {
     .setMaxLength(1000)
     .setRequired(true);
 
-  const phone = new TextInputBuilder()
-    .setCustomId(IDS.f_phone)
-    .setStyle(TextInputStyle.Short)
-    .setPlaceholder('e.g. 555-123-4567')
-    .setMaxLength(40)
-    .setRequired(false);
-
   const booth = new TextInputBuilder()
     .setCustomId(IDS.f_booth)
     .setStyle(TextInputStyle.Short)
@@ -85,8 +78,7 @@ function buildRequestModal() {
     .addLabelComponents(
       new LabelBuilder().setLabel('What do you need?').setStringSelectMenuComponent(typeSelect),
       new LabelBuilder().setLabel('Describe the request').setTextInputComponent(desc),
-      new LabelBuilder().setLabel('Phone number (optional)').setDescription('So we can reach you when it\'s ready — we can also ping you here on Discord').setTextInputComponent(phone),
-      new LabelBuilder().setLabel('Booth ID / location').setTextInputComponent(booth),
+      new LabelBuilder().setLabel('Booth ID / location').setDescription('Booth # or where we can find you — we\'ll ping you here on Discord when it\'s ready').setTextInputComponent(booth),
       new LabelBuilder().setLabel('Photos or 3D files (optional)').setDescription('Attach up to 5 files — photos of the item, or your 3D print files (STL, 3MF, STEP, OBJ…)').setFileUploadComponent(photos),
     );
 }
@@ -179,7 +171,6 @@ async function handleModal(interaction) {
 
   const typeValue = interaction.fields.getStringSelectValues(IDS.f_type)?.[0] || 'repair';
   const description = interaction.fields.getTextInputValue(IDS.f_desc)?.trim() || '';
-  const phone = interaction.fields.getTextInputValue(IDS.f_phone)?.trim() || '';
   const booth = interaction.fields.getTextInputValue(IDS.f_booth)?.trim() || '';
 
   let fileUrls = [];
@@ -199,7 +190,6 @@ async function handleModal(interaction) {
     source: 'discord',
     type: typeValue,
     name: requesterName,
-    phone,
     boothId: booth,
     item,
     issue: description,
@@ -225,13 +215,26 @@ async function handleModal(interaction) {
 /* ── bootstrap ───────────────────────────────────────────── */
 
 export async function startBot() {
-  const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+  const client = new Client({
+    intents: [GatewayIntentBits.Guilds],
+    // Present clearly as online with an activity once the gateway connects.
+    presence: {
+      status: 'online',
+      activities: [{ name: 'repair requests 🔧', type: ActivityType.Watching }],
+    },
+  });
 
   client.once(Events.ClientReady, async (c) => {
-    console.log(`[discord] Logged in as ${c.user.tag}`);
+    console.log(`[discord] Logged in as ${c.user.tag} — online in ${c.guilds.cache.size} server(s)`);
     notify.setClient(client);
     await notify.ensureForumTags();
   });
+
+  // Surface gateway trouble instead of failing silently (a bot that logs in but
+  // then loses the connection shows as offline with no error otherwise).
+  client.on(Events.Error, (err) => console.error('[discord] client error:', err.message));
+  client.on(Events.ShardError, (err) => console.error('[discord] shard/gateway error:', err.message));
+  client.on(Events.ShardDisconnect, (event) => console.warn(`[discord] gateway disconnected (code ${event.code}) — bot will appear offline until it reconnects`));
 
   client.on(Events.InteractionCreate, async (interaction) => {
     try {

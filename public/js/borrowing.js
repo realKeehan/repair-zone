@@ -63,12 +63,13 @@ async function load() {
 }
 
 function renderStats(s) {
-  const outCount = RENTALS.filter((r) => r.status === 'out').length;
+  // Lead with rental activity (works for free-text checkouts); inventory count
+  // is just a reference and is 0 unless staff have added tools manually.
   RZ.el('stats').innerHTML = `
-    <div class="stat"><div class="n">${s.tools.total}</div><div class="l">Tools in inventory</div></div>
-    <div class="stat"><div class="n" style="color:var(--green)">${s.tools.available}</div><div class="l">Available</div></div>
-    <div class="stat"><div class="n" style="color:var(--red)">${s.tools.out}</div><div class="l">Checked out</div></div>
-    <div class="stat"><div class="n">${outCount}</div><div class="l">Open rentals</div></div>`;
+    <div class="stat"><div class="n" style="color:var(--red)">${s.rentals.out}</div><div class="l">Checked out now</div></div>
+    <div class="stat"><div class="n" style="color:var(--green)">${s.rentals.returned}</div><div class="l">Returned</div></div>
+    <div class="stat"><div class="n">${s.rentals.total}</div><div class="l">Total checkouts</div></div>
+    <div class="stat"><div class="n">${s.tools.total}</div><div class="l">Tools in inventory</div></div>`;
 }
 
 function searchQuery() {
@@ -147,27 +148,27 @@ async function deleteTool(id) {
 }
 
 /* ── checkout modal ── */
-function openCheckout(preselect) {
-  const avail = TOOLS.filter((t) => t.status === 'available');
-  RZ.el('co-tool').innerHTML = avail.length
-    ? avail.map((t) => `<option value="${t.id}">${RZ.esc(t.name)}</option>`).join('')
-    : '<option value="">No tools available</option>';
-  if (preselect) RZ.el('co-tool').value = preselect;
+// When checking out an existing inventory tool we keep its id so its status
+// flips to "out"; a blank id means a free-text checkout (just logs the name).
+let checkoutToolId = null;
+function openCheckout(tool) {
+  checkoutToolId = tool && tool.id ? tool.id : null;
+  RZ.el('co-tool').value = tool && tool.name ? tool.name : '';
   RZ.el('checkout-notice').className = 'notice';
   ['co-name', 'co-booth', 'co-phone'].forEach((id) => (RZ.el(id).value = ''));
   RZ.el('checkout-modal').classList.add('show');
+  RZ.el('co-tool').focus();
 }
 function quickCheckout(id) {
-  openCheckout(id);
+  openCheckout(TOOLS.find((t) => t.id === id) || null);
 }
 RZ.el('co-save').addEventListener('click', async () => {
-  const body = {
-    toolId: RZ.el('co-tool').value,
-    name: RZ.el('co-name').value.trim(),
-    boothId: RZ.el('co-booth').value.trim(),
-    phone: RZ.el('co-phone').value.trim(),
-  };
-  if (!body.toolId || !body.name) return RZ.notice(RZ.el('checkout-notice'), 'error', 'Tool and borrower name are required.');
+  const toolName = RZ.el('co-tool').value.trim();
+  const name = RZ.el('co-name').value.trim();
+  if (!toolName || !name) return RZ.notice(RZ.el('checkout-notice'), 'error', 'Tool and borrower name are required.');
+  const body = { name, boothId: RZ.el('co-booth').value.trim(), phone: RZ.el('co-phone').value.trim() };
+  if (checkoutToolId) body.toolId = checkoutToolId;
+  else body.toolName = toolName;
   try {
     await RZ.api('/api/admin/rentals', { method: 'POST', token: TOKEN, body });
     closeModals();

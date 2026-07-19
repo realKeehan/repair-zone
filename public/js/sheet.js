@@ -103,7 +103,7 @@ function renderStats(s) {
   RZ.el('stats').innerHTML = `
     <div class="stat"><div class="n">${s.repairs.total}</div><div class="l">Requests</div></div>
     <div class="stat"><div class="n" style="color:var(--orange-600)">${s.repairs.open}</div><div class="l">In queue</div></div>
-    <div class="stat"><div class="n" style="color:var(--teal)">${s.tools.out}/${s.tools.total}</div><div class="l">Tools out</div></div>
+    <div class="stat"><div class="n" style="color:var(--teal)">${s.rentals.out}</div><div class="l">Tools out</div></div>
     <div class="stat"><div class="n" style="color:var(--green)">${s.repairs.done}</div><div class="l">Completed</div></div>`;
 }
 
