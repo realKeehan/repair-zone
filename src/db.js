@@ -242,6 +242,40 @@ export function returnRental(id) {
   return rental;
 }
 
+/** Undo an accidental check-in: flip a returned rental back to "out". */
+export function reopenRental(id) {
+  const rental = getRental(id);
+  if (!rental) return null;
+  if (rental.status !== 'out') {
+    rental.status = 'out';
+    rental.timeIn = null;
+    // Re-attach the tool only if it's free (not since lent to someone else).
+    const tool = getTool(rental.toolId);
+    if (tool && !tool.rentalId) {
+      tool.status = 'out';
+      tool.borrowerName = rental.name;
+      tool.borrowerBooth = rental.boothId;
+      tool.checkedOutAt = rental.timeOut;
+      tool.rentalId = rental.id;
+    }
+    save();
+  }
+  return rental;
+}
+
+/**
+ * Wipe ALL live data — repairs, rentals, tools, and the ID counters — back to a
+ * clean slate. Super-admin only (see the reset endpoint). Used when moving from
+ * testing to real use, or to a different Discord server. Returns the pre-reset
+ * counts so the caller can report what was cleared.
+ */
+export function resetData() {
+  const cleared = { repairs: db.repairs.length, rentals: db.rentals.length, tools: db.tools.length };
+  db = emptyDb();
+  save();
+  return cleared;
+}
+
 export function stats() {
   return {
     repairs: {

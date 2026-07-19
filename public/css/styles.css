@@ -114,6 +114,11 @@ h1, h2, h3 { line-height: 1.2; letter-spacing: -0.02em; }
 /* Inline Bootstrap Icons — scale with the surrounding font-size, inherit color. */
 .bi { display: inline-block; width: 1em; height: 1em; fill: currentColor; vertical-align: -0.125em; }
 
+/* The embedded Tally waiver renders dark text on a transparent background, so
+   keep it on a solid light surface — otherwise it's unreadable in dark mode. */
+#waiver-embed { background: #fff; border-radius: 12px; padding: 8px; }
+#waiver-embed iframe { display: block; }
+
 /* ── Buttons ── */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;

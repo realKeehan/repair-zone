@@ -3,6 +3,8 @@
 let TOKEN = localStorage.getItem('rz-admin-token') || '';
 let TAB = 'requests';
 let DATA = { requests: [], rentals: [] };
+let timer = null;
+let lastSig = '';
 
 /* ── column definitions per tab ── */
 const COLUMNS = {
@@ -51,6 +53,7 @@ function showPanel() {
   RZ.el('panel').style.display = '';
   RZ.el('logout').style.display = '';
   load();
+  startSync();
 }
 RZ.el('gate-btn').addEventListener('click', signIn);
 RZ.el('token').addEventListener('keydown', (e) => e.key === 'Enter' && signIn());
@@ -73,19 +76,32 @@ RZ.el('logout').addEventListener('click', (e) => {
 });
 
 /* ── data ── */
-async function load() {
+async function load({ silent = false } = {}) {
   try {
     const [{ repairs }, { rentals }, { stats }] = await Promise.all([
       RZ.api('/api/admin/repairs', { token: TOKEN }),
       RZ.api('/api/admin/rentals', { token: TOKEN }),
       RZ.api('/api/admin/ping', { token: TOKEN }),
     ]);
+    // On background polls, skip re-rendering when nothing changed.
+    const sig = JSON.stringify({ repairs, rentals, stats });
+    if (silent && sig === lastSig) return;
+    lastSig = sig;
     DATA = { requests: repairs, rentals };
     renderStats(stats);
     render();
   } catch (err) {
-    RZ.notice(RZ.el('notice'), 'error', err.message);
+    if (!silent) RZ.notice(RZ.el('notice'), 'error', err.message);
   }
+}
+
+// Poll so the overview reflects other staff's changes automatically. Pauses
+// while the tab is hidden.
+function startSync() {
+  clearInterval(timer);
+  timer = setInterval(() => {
+    if (!document.hidden) load({ silent: true });
+  }, 5000);
 }
 
 function renderStats(s) {
@@ -157,7 +173,23 @@ function exportCsv() {
   URL.revokeObjectURL(a.href);
 }
 
+// Super-admin: wipe all data. Gated by the server's SUPER_ADMIN_PASSWORD, which
+// staff enter here — it is never stored client-side.
+async function resetData() {
+  const pw = prompt('Super-admin password to reset ALL data (this cannot be undone):');
+  if (!pw) return;
+  if (!confirm('This permanently deletes EVERY repair, rental, and tool record. Continue?')) return;
+  try {
+    const res = await RZ.api('/api/admin/reset', { method: 'POST', token: TOKEN, body: { password: pw } });
+    RZ.notice(RZ.el('notice'), 'success', `Data reset — cleared ${res.cleared.repairs} repairs, ${res.cleared.rentals} rentals, ${res.cleared.tools} tools.`);
+    load();
+  } catch (err) {
+    RZ.notice(RZ.el('notice'), 'error', err.message);
+  }
+}
+
 window.load = load;
 window.exportCsv = exportCsv;
+window.resetData = resetData;
 
 boot();

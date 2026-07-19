@@ -30,6 +30,11 @@ export const config = {
   // admin token — access to /admin and /api/admin is assumed to be gated
   // upstream (e.g. Apache Basic Auth via .htaccess on cPanel). See docs/DEPLOYMENT.md.
   adminAuthExternal: ['external', 'htaccess', 'proxy'].includes((process.env.ADMIN_AUTH || '').toLowerCase()),
+  // Extra gate for the destructive "reset all data" action. Left unset by
+  // default, which DISABLES reset entirely (the endpoint 503s). Set a strong
+  // value only when you need to wipe the queue — e.g. moving to real use or a
+  // new Discord server. This is required IN ADDITION to normal admin auth.
+  superAdminPassword: process.env.SUPER_ADMIN_PASSWORD || '',
 
   discord: {
     botToken: process.env.DISCORD_BOT_TOKEN || '',

@@ -127,6 +127,23 @@ apiRouter.get('/admin/ping', requireAdmin, (req, res) => {
   res.json({ ok: true, stats: db.stats() });
 });
 
+/* ── super-admin: wipe all data ──────────────────────────── */
+
+// Destructive reset, gated by BOTH normal admin auth and a separate
+// SUPER_ADMIN_PASSWORD. Disabled (503) unless that password is configured.
+apiRouter.post('/admin/reset', requireAdmin, (req, res) => {
+  if (!config.superAdminPassword) {
+    return res.status(503).json({ error: 'Data reset is not enabled. Set SUPER_ADMIN_PASSWORD on the server to allow it.' });
+  }
+  const provided = str((req.body || {}).password, 200);
+  if (provided !== config.superAdminPassword) {
+    return res.status(403).json({ error: 'Incorrect super-admin password.' });
+  }
+  const cleared = db.resetData();
+  console.warn(`[admin] Data reset by super-admin — cleared ${cleared.repairs} repairs, ${cleared.rentals} rentals, ${cleared.tools} tools.`);
+  res.json({ ok: true, cleared });
+});
+
 /* ── admin: repairs ──────────────────────────────────────── */
 
 apiRouter.get('/admin/repairs', requireAdmin, (req, res) => {
@@ -229,6 +246,13 @@ apiRouter.post('/admin/rentals', requireAdmin, (req, res) => {
 
 apiRouter.patch('/admin/rentals/:id/return', requireAdmin, (req, res) => {
   const rental = db.returnRental(req.params.id);
+  if (!rental) return res.status(404).json({ error: 'Rental not found.' });
+  res.json({ ok: true, rental });
+});
+
+// Undo an accidental check-in: flip a returned rental back to "out".
+apiRouter.patch('/admin/rentals/:id/reopen', requireAdmin, (req, res) => {
+  const rental = db.reopenRental(req.params.id);
   if (!rental) return res.status(404).json({ error: 'Rental not found.' });
   res.json({ ok: true, rental });
 });

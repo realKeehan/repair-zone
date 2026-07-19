@@ -4,6 +4,8 @@
 
 let TOKEN = localStorage.getItem('rz-admin-token') || '';
 let RENTALS = [];
+let timer = null;
+let lastSig = '';
 
 /* ── auth ── */
 async function boot() {
@@ -23,6 +25,7 @@ function showPanel() {
   RZ.el('panel').style.display = '';
   RZ.el('logout').style.display = '';
   load();
+  startSync();
 }
 RZ.el('gate-btn').addEventListener('click', signIn);
 RZ.el('token').addEventListener('keydown', (e) => e.key === 'Enter' && signIn());
@@ -45,19 +48,32 @@ RZ.el('logout').addEventListener('click', (e) => {
 });
 
 /* ── data ── */
-async function load() {
+async function load({ silent = false } = {}) {
   try {
     const [{ rentals }, { stats }] = await Promise.all([
       RZ.api('/api/admin/rentals', { token: TOKEN }),
       RZ.api('/api/admin/ping', { token: TOKEN }),
     ]);
+    // On background polls, skip re-rendering when nothing changed.
+    const sig = JSON.stringify({ rentals, stats });
+    if (silent && sig === lastSig) return;
+    lastSig = sig;
     RENTALS = rentals;
     renderStats(stats);
     renderActive();
     renderRentals();
   } catch (err) {
-    RZ.notice(RZ.el('notice'), 'error', err.message);
+    if (!silent) RZ.notice(RZ.el('notice'), 'error', err.message);
   }
+}
+
+// Poll so checkouts/returns by other staff show up automatically for everyone
+// with the page open. Pauses while the tab is hidden.
+function startSync() {
+  clearInterval(timer);
+  timer = setInterval(() => {
+    if (!document.hidden) load({ silent: true });
+  }, 5000);
 }
 
 function renderStats(s) {
@@ -112,7 +128,7 @@ function renderRentals() {
       <td class="muted">${RZ.esc(r.phone || '—')}</td>
       <td class="muted">${RZ.time(r.timeOut)}</td>
       <td class="muted">${r.timeIn ? RZ.time(r.timeIn) : '—'}</td>
-      <td>${r.status === 'out' ? RZ.pill('out') + ` <button class="btn btn-primary btn-sm" onclick="returnRental(${r.id})">In</button>` : '<span class="pill available">Returned</span>'}</td>
+      <td>${r.status === 'out' ? RZ.pill('out') + ` <button class="btn btn-primary btn-sm" onclick="returnRental(${r.id})">In</button>` : '<span class="pill available">Returned</span> <button class="btn btn-ghost btn-sm" onclick="reopenRental(' + r.id + ')" title="Undo check-in — mark as out again">Undo</button>'}</td>
     </tr>`,
     )
     .join('');
@@ -122,6 +138,15 @@ function renderRentals() {
 async function returnRental(id) {
   try {
     await RZ.api(`/api/admin/rentals/${id}/return`, { method: 'PATCH', token: TOKEN });
+    load();
+  } catch (err) {
+    RZ.notice(RZ.el('notice'), 'error', err.message);
+  }
+}
+// Undo an accidental check-in: flip a returned rental back to "out".
+async function reopenRental(id) {
+  try {
+    await RZ.api(`/api/admin/rentals/${id}/reopen`, { method: 'PATCH', token: TOKEN });
     load();
   } catch (err) {
     RZ.notice(RZ.el('notice'), 'error', err.message);
@@ -160,6 +185,7 @@ RZ.el('search').addEventListener('input', () => {
 });
 
 window.returnRental = returnRental;
+window.reopenRental = reopenRental;
 window.openCheckout = openCheckout;
 window.closeModals = closeModals;
 window.load = load;

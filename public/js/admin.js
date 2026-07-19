@@ -5,6 +5,7 @@ let TOKEN = localStorage.getItem('rz-admin-token') || '';
 let REPAIRS = [];
 let FILTER = 'active';
 let timer = null;
+let lastSig = '';
 let editingId = null;
 
 /* ── auth gate ── */
@@ -33,6 +34,7 @@ function showPanel() {
   RZ.el('panel').style.display = '';
   RZ.el('logout').style.display = '';
   load();
+  startSync();
 }
 
 RZ.el('gate-btn').addEventListener('click', signIn);
@@ -56,18 +58,32 @@ RZ.el('logout').addEventListener('click', (e) => {
 });
 
 /* ── data ── */
-async function load() {
+async function load({ silent = false } = {}) {
   try {
     const [{ repairs }, { stats }] = await Promise.all([
       RZ.api('/api/admin/repairs', { token: TOKEN }),
       RZ.api('/api/admin/ping', { token: TOKEN }),
     ]);
+    // On background polls, skip re-rendering when nothing changed so we don't
+    // disrupt an open dropdown or selection while other staff have it open.
+    const sig = JSON.stringify({ repairs, stats });
+    if (silent && sig === lastSig) return;
+    lastSig = sig;
     REPAIRS = repairs;
     renderStats(stats);
     render();
   } catch (err) {
-    RZ.notice(RZ.el('notice'), 'error', err.message);
+    if (!silent) RZ.notice(RZ.el('notice'), 'error', err.message);
   }
+}
+
+// Poll so edits by other staff show up automatically for everyone with the
+// page open. Pauses while the tab is hidden.
+function startSync() {
+  clearInterval(timer);
+  timer = setInterval(() => {
+    if (!document.hidden) load({ silent: true });
+  }, 5000);
 }
 
 function renderStats(s) {
@@ -199,10 +215,6 @@ RZ.el('filters').addEventListener('click', (e) => {
   render();
 });
 RZ.el('search').addEventListener('input', render);
-RZ.el('autorefresh').addEventListener('change', (e) => {
-  clearInterval(timer);
-  if (e.target.checked) timer = setInterval(load, 10000);
-});
 
 window.setStatus = setStatus;
 window.claim = claim;
