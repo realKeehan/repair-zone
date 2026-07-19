@@ -78,6 +78,13 @@ function renderStats(s) {
     <div class="stat"><div class="n" style="color:var(--red)">${s.repairs.unable}</div><div class="l">Unable to repair</div></div>`;
 }
 
+// Jump link to the Discord forum post. Needs both guildId + threadId; older
+// records created before guildId was stored fall back to a plain marker.
+function discordUrl(r) {
+  const d = r.discord;
+  return d && d.threadId && d.guildId ? `https://discord.com/channels/${d.guildId}/${d.threadId}` : null;
+}
+
 function matchesFilter(r) {
   if (FILTER === 'all') return true;
   if (FILTER === 'active') return ['open', 'claimed', 'in_progress'].includes(r.status);
@@ -96,7 +103,12 @@ function render() {
   body.innerHTML = rows
     .map((r) => {
       const opts = STATUSES.map((s) => `<option value="${s}" ${s === r.status ? 'selected' : ''}>${RZ.statusLabel(s)}</option>`).join('');
-      const thread = r.discord?.threadId ? ` <span class="muted mono">· post</span>` : '';
+      const dUrl = discordUrl(r);
+      const thread = dUrl
+        ? ` <a class="mono" href="${dUrl}" target="_blank" rel="noopener" title="Open the Discord post">· post ↗</a>`
+        : r.discord?.threadId
+        ? ` <span class="muted mono">· post</span>`
+        : '';
       const tm = RZ.typeMeta(r.type);
       const contact = [r.phone, r.contact].filter(Boolean).map(RZ.esc).join('<br>') || '<span class="muted">—</span>';
       return `<tr>
@@ -151,7 +163,15 @@ function openModal(id) {
     <p style="margin:.2rem 0"><strong>Contact:</strong> ${RZ.esc(r.phone || '')} ${RZ.esc(r.contact || '')}</p>
     <p style="margin:.2rem 0"><strong>Status:</strong> ${RZ.pill(r.status)}</p>
     <p style="margin:.6rem 0"><strong>Issue:</strong><br>${RZ.esc(r.issue || '—')}</p>
-    ${r.discord?.threadId ? `<p class="muted mono">Discord thread: ${RZ.esc(r.discord.threadId)}</p>` : ''}`;
+    ${
+      r.discord?.threadId
+        ? `<p class="muted mono">Discord post: ${
+            discordUrl(r)
+              ? `<a href="${discordUrl(r)}" target="_blank" rel="noopener">open in Discord ↗</a>`
+              : RZ.esc(r.discord.threadId)
+          }</p>`
+        : ''
+    }`;
   RZ.el('modal-notes').value = r.notes || '';
   RZ.el('modal').classList.add('show');
 }
