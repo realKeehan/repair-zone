@@ -12,9 +12,8 @@
   <div class="stripe"></div>
   <header class="site-header">
     <nav class="nav container">
-      <a class="brand" href="/">
-        <svg class="logo" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="11" fill="#f97316"/><path d="M31.5 15.5a6 6 0 0 1-7.8 7.8L15 32l1 1 8.7-8.7a6 6 0 0 1 7.8-7.8l-3.2 3.2 1.8 1.8 3.2-3.2Z" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="17" cy="31" r="2" fill="#f97316"/></svg>
-        The Repair Zone
+      <a class="brand" href="/" aria-label="The Repair Zone — home">
+        <img class="logo" src="/images/logo.png" alt="The Repair Zone" width="684" height="448" />
       </a>
       <div class="nav-links">
         <a href="/repair">Request a repair</a>
@@ -55,14 +54,14 @@
             <input type="text" id="name" name="name" autocomplete="name" required maxlength="120" />
           </div>
           <div class="field">
-            <label for="phone">Phone number <span class="hint">(optional)</span></label>
-            <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="40" placeholder="555-123-4567" />
+            <label for="phone">Phone number <span class="req">*</span></label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" required maxlength="40" placeholder="555-123-4567 (or e.g. “leaving ID as deposit”)" />
           </div>
         </div>
 
         <div class="field">
-          <label for="boothId">Booth ID / location <span class="hint">(optional)</span></label>
-          <input type="text" id="boothId" name="boothId" maxlength="60" placeholder="e.g. Hall B, Booth 214" />
+          <label for="boothId">Booth ID / location <span class="req">*</span></label>
+          <input type="text" id="boothId" name="boothId" required maxlength="60" placeholder="e.g. Hall B, Booth 214" />
         </div>
 
         <div class="field">
@@ -80,7 +79,7 @@
   <footer class="site-footer">
     <div class="container row">
       <div><strong>The Repair Zone</strong> · Open Sauce volunteer booth.</div>
-      <div><a href="/repair">Repair</a> · <a href="/borrow">Borrow</a> · <a href="/terms">Terms</a></div>
+      <div><a href="/repair">Repair</a> · <a href="/borrow">Borrow</a> · <a href="/waiver">Waiver</a> · <a href="/terms">Terms</a></div>
     </div>
   </footer>
 

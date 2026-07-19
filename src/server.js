@@ -15,15 +15,23 @@ app.disable('x-powered-by');
 app.set('trust proxy', config.trustProxy);
 
 // Helmet with a CSP that allows our self-hosted assets + inline styles/scripts.
+// The waiver page (/waiver) embeds a Tally form, so tally.so is allowed as a
+// frame source and script source (their embed.js handles dynamic iframe height).
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://tally.so'],
+        // Allow inline event handlers (e.g. the header's onclick="toggleTheme()").
+        // Helmet's default CSP sets script-src-attr to 'none', which blocks ALL
+        // inline on* handlers even when script-src allows 'unsafe-inline' — that
+        // silently breaks the theme toggle and every other onclick on the site.
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:'],
         connectSrc: ["'self'"],
+        frameSrc: ["'self'", 'https://tally.so'],
       },
     },
   }),
@@ -33,6 +41,18 @@ app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 app.use('/api', apiRouter);
+
+// Small runtime config exposed to the browser (no secrets — just public IDs
+// like the Tally waiver form). Served as JS so pages can read window.RZ_CONFIG.
+// Registered before express.static so it wins over any same-named file.
+app.get('/js/site-config.js', (req, res) => {
+  const publicConfig = {
+    tally: { waiverFormId: config.tally.waiverFormId },
+  };
+  res.type('application/javascript');
+  res.set('Cache-Control', 'no-cache');
+  res.send(`window.RZ_CONFIG=${JSON.stringify(publicConfig)};`);
+});
 
 // Static site (landing, forms, admin panels).
 app.use(express.static(PUBLIC_DIR, { extensions: ['html'] }));

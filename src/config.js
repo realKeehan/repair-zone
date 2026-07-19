@@ -39,6 +39,16 @@ export const config = {
     logChannelId: process.env.DISCORD_LOG_CHANNEL_ID || '',
     webhookUrl: process.env.DISCORD_WEBHOOK_URL || '',
   },
+
+  // Online liability waiver, hosted on Tally (https://tally.so). Tally is used
+  // because its free plan supports signature fields and high submission volume.
+  // Set TALLY_WAIVER_FORM_ID to your form's ID (the code in tally.so/r/<ID>).
+  // The /waiver page embeds it; if unset, the page shows a friendly "not set up
+  // yet" message instead of a broken embed. See docs/WAIVER-SETUP.md.
+  tally: {
+    // Just the form ID (e.g. "wA1bCd"), or a full tally.so URL — either works.
+    waiverFormId: (process.env.TALLY_WAIVER_FORM_ID || '').trim(),
+  },
 };
 
 /** True when there is enough config to boot the Discord bot. */

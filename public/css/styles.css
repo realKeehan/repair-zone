@@ -93,7 +93,13 @@ h1, h2, h3 { line-height: 1.2; letter-spacing: -0.02em; }
 .nav { display: flex; align-items: center; gap: 18px; height: 62px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; color: var(--text); }
 .brand:hover { text-decoration: none; }
-.brand .logo { width: 30px; height: 30px; }
+.brand .logo { height: 40px; width: auto; display: block; }
+/* Logo is black artwork on transparency — flip it to white on dark headers.
+   Mirror the theme logic in :root above: honor the system preference, but let
+   an explicit data-theme override win (light stays black, dark goes white). */
+@media (prefers-color-scheme: dark) { .brand .logo { filter: invert(1); } }
+:root[data-theme="light"] .brand .logo { filter: none; }
+:root[data-theme="dark"]  .brand .logo { filter: invert(1); }
 .nav-links { display: flex; gap: 6px; margin-left: auto; align-items: center; }
 .nav-links a { color: var(--muted); font-weight: 600; padding: 8px 12px; border-radius: 8px; font-size: .95rem; }
 .nav-links a:hover { color: var(--text); background: var(--surface-2); text-decoration: none; }

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign the Waiver · The Repair Zone</title>
+  <meta name="description" content="Read and sign The Repair Zone liability waiver online before you visit the booth at Open Sauce." />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>" />
+</head>
+<body>
+  <div class="stripe"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="/" aria-label="The Repair Zone — home">
+        <img class="logo" src="/images/logo.png" alt="The Repair Zone" width="684" height="448" />
+      </a>
+      <div class="nav-links">
+        <a href="/repair">Request a repair</a>
+        <a href="/borrow">Borrow a tool</a>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container narrow" style="padding-top:40px;padding-bottom:40px;">
+    <span class="eyebrow">✍️ Liability waiver</span>
+    <h1 style="margin:16px 0 8px;">Sign the waiver</h1>
+    <p class="muted" style="margin-top:0;">Anyone borrowing a tool or receiving a repair signs our liability waiver. Do it here to <strong>skip the paperwork line</strong> — or sign on paper when you arrive. It only takes a minute.</p>
+
+    <div class="callout" style="margin-top:20px;">
+      <p style="margin:0 0 8px;"><strong>Before you sign, know that:</strong></p>
+      <ul style="margin:0;padding-left:20px;">
+        <li>Repairs and tool loans are provided <strong>free</strong> and <strong>as-is, with no warranty</strong>.</li>
+        <li>You use tools and accept repairs <strong>at your own risk</strong>, and you're responsible for backing up your own data.</li>
+        <li>Borrowed tools must be returned, clean and working, by <strong>end of day</strong>.</li>
+        <li>The full details are in the <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>. Signing means you've read and agree to them.</li>
+      </ul>
+    </div>
+
+    <div class="form-card" style="margin-top:24px;">
+      <!-- Tally embed is injected here by waiver.js once the form ID is configured. -->
+      <div id="waiver-embed" aria-live="polite">
+        <div id="waiver-loading" class="muted" style="text-align:center;padding:32px 0;">Loading the waiver form…</div>
+      </div>
+
+      <!-- Shown when TALLY_WAIVER_FORM_ID isn't set on the server. -->
+      <div id="waiver-unconfigured" style="display:none;text-align:center;padding:24px 0;">
+        <div style="font-size:2.5rem;">🚧</div>
+        <h2 style="margin:10px 0 6px;">Online waiver isn't set up yet</h2>
+        <p class="muted" style="margin:0;">No problem — you can still sign on paper at the booth. Staff: set <code class="mono">TALLY_WAIVER_FORM_ID</code> to enable this page (see <span class="mono">docs/WAIVER-SETUP.md</span>).</p>
+      </div>
+    </div>
+
+    <p class="muted" id="waiver-fallback" style="text-align:center;margin-top:18px;font-size:.9rem;display:none;">
+      Form not loading? <a id="waiver-direct-link" href="#" target="_blank" rel="noopener">Open the waiver in a new tab →</a>
+    </p>
+
+    <p class="muted" style="text-align:center;margin-top:18px;font-size:.85rem;">
+      This online waiver mirrors the printed agreement signed at the booth. The signed paper agreement governs in case of any discrepancy.
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container row">
+      <div><strong>The Repair Zone</strong> · Open Sauce volunteer booth.</div>
+      <div><a href="/repair">Repair</a> · <a href="/borrow">Borrow</a> · <a href="/waiver">Waiver</a> · <a href="/terms">Terms</a></div>
+    </div>
+  </footer>
+
+  <script src="/js/site-config.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/waiver.js"></script>
+</body>
+</html>
