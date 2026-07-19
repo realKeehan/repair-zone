@@ -57,12 +57,10 @@ export function statusHeart(status) {
  * the bot previously left that isn't current, then add the right one. Best-effort
  * (needs Add Reactions on the forum) — never blocks a status update if it fails.
  */
-async function syncStatusHeart(thread, status) {
+async function syncStatusHeart(starter, status) {
   try {
-    if (!thread.fetchStarterMessage) return;
-    const starter = await thread.fetchStarterMessage().catch(() => null);
     if (!starter) return;
-    const meId = thread.client.user.id;
+    const meId = starter.client.user.id;
     const target = STATUS_HEART[status] || null;
 
     for (const heart of ALL_HEARTS) {
@@ -87,10 +85,16 @@ export function buildRepairEmbed(repair) {
       { name: 'Booth / Location', value: repair.boothId || '—', inline: true },
       { name: 'Type', value: `${type.emoji} ${type.label}`, inline: true },
       { name: 'Status', value: meta.label, inline: true },
-      { name: 'The request', value: (repair.issue || '—').slice(0, 1024) },
     )
     .setFooter({ text: `The Repair Zone · via ${repair.source === 'discord' ? 'Discord' : 'website'}` })
     .setTimestamp(new Date(repair.createdAt));
+
+  // Show who's handling it once a volunteer has claimed the ticket.
+  if (repair.assignee) {
+    const who = /^\d+$/.test(String(repair.assignee)) ? `<@${repair.assignee}>` : repair.assignee;
+    embed.addFields({ name: 'Handled by', value: who, inline: true });
+  }
+  embed.addFields({ name: 'The request', value: (repair.issue || '—').slice(0, 1024) });
 
   // Forum channels are public, so contact details (phone / email / Discord tag)
   // are deliberately left out of the post — they live only on the admin ticket.
@@ -222,12 +226,14 @@ export async function onRepairUpdated(repair) {
   const thread = await client.channels.fetch(threadId).catch(() => null);
   if (!thread) return;
 
-  await thread
-    .send({ content: `**Status → ${statusLabel(repair.status)}**${repair.assignee ? ` · handled by ${/^\d+$/.test(String(repair.assignee)) ? `<@${repair.assignee}>` : repair.assignee}` : ''}` })
-    .catch(() => {});
-
-  // Reflect the status as the ticket's heart reaction (💛 / 💚 / 💗).
-  await syncStatusHeart(thread, repair.status);
+  // Update the original post in place instead of posting a status message:
+  // edit its embed (status colour/label + handler) and set the heart reaction.
+  const starter = thread.fetchStarterMessage ? await thread.fetchStarterMessage().catch(() => null) : null;
+  if (starter) {
+    await starter.edit({ embeds: [buildRepairEmbed(repair)] }).catch((e) => console.warn('[discord] Could not update post embed:', e.message));
+    // Reflect the status as the ticket's heart reaction (💛 / 💚 / 💗).
+    await syncStatusHeart(starter, repair.status);
+  }
 
   if (repair.status === 'picked_up' && thread.setArchived) {
     await thread.setArchived(true).catch(() => {});
