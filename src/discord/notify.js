@@ -151,9 +151,9 @@ export async function createForumPostForRepair(repair, { mentionUserId = null, f
   const type = db.repairTypeMeta(repair.type);
   const title = `${type.emoji} #${repair.id} · ${repair.item} — ${repair.name}`.slice(0, 96);
   const mention = mentionUserId ? `<@${mentionUserId}> ` : '';
-  const askPhotos = files.length ? '' : '\n📎 **Reply here with photos, or your 3D print files** — it really helps us diagnose or print.';
+  const replyPrompt = files.length ? '' : '\n💬 **Reply here with any other relevant info as needed** — photos, 3D print files, deadlines, or anything else that helps.';
   const content =
-    `${mention}Thanks — your repair request is logged! A Repair Zone volunteer will pick it up shortly.` + askPhotos;
+    `${mention}Thanks — your repair request is logged! A Repair Zone volunteer will pick it up shortly.` + replyPrompt;
 
   let post;
   try {
