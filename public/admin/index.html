@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Repair Queue · Repair Zone Admin</title>
   <meta name="robots" content="noindex" />
-  <link rel="stylesheet" href="/css/styles.css?v=5" />
+  <link rel="stylesheet" href="/css/styles.css?v=6" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23f97316' viewBox='0 0 16 16'><path d='M.102 2.223A3.004 3.004 0 0 0 3.78 5.897l6.341 6.252A3.003 3.003 0 0 0 13 16a3 3 0 1 0-.851-5.878L5.897 3.781A3.004 3.004 0 0 0 2.223.1l2.141 2.142L4 4l-1.757.364zm13.37 9.019.528.026.287.445.445.287.026.529L15 13l-.242.471-.026.529-.445.287-.287.445-.529.026L13 15l-.471-.242-.529-.026-.287-.445-.445-.287-.026-.529L11 13l.242-.471.026-.529.445-.287.287-.445.529-.026L13 11z'/></svg>" />
 </head>
 <body>
@@ -79,17 +79,21 @@
       <h3 id="modal-title">Repair details</h3>
       <div id="modal-body"></div>
       <div class="field" style="margin-top:12px;">
-        <label for="modal-notes">Internal notes</label>
-        <textarea id="modal-notes" style="min-height:90px;"></textarea>
+        <label>Internal notes <span class="hint">(staff only — not shown on Discord)</span></label>
+        <div id="modal-notes-log" class="notes-log muted">No notes yet.</div>
+      </div>
+      <div class="field">
+        <label for="modal-note">Add a note</label>
+        <textarea id="modal-note" style="min-height:60px;" placeholder="Add an internal note…"></textarea>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
-        <button class="btn btn-primary btn-sm" id="modal-save">Save notes</button>
+        <button class="btn btn-primary btn-sm" id="modal-save">Add note</button>
       </div>
     </div>
   </div>
 
-  <script src="/js/common.js?v=5"></script>
-  <script src="/js/admin.js?v=5"></script>
+  <script src="/js/common.js?v=6"></script>
+  <script src="/js/admin.js?v=6"></script>
 </body>
 </html>

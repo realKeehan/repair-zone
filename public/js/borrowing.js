@@ -89,7 +89,12 @@ function searchQuery() {
 }
 
 function matchesSearch(r, q) {
-  return !q || `${r.toolName} ${r.name} ${r.boothId || ''} ${r.phone || ''}`.toLowerCase().includes(q);
+  return !q || `${r.toolName} ${r.name} ${r.boothId || ''} ${r.phone || ''} ${r.notes || ''}`.toLowerCase().includes(q);
+}
+
+// Accumulated notes shown as a muted sub-line under the tool name.
+function notesLine(r) {
+  return r.notes ? `<br><span class="muted" style="white-space:pre-wrap;font-size:.85rem;">${RZ.esc(r.notes)}</span>` : '';
 }
 
 // Currently loaned out: the active checkouts, surfaced above the full log so
@@ -102,12 +107,12 @@ function renderActive() {
   body.innerHTML = list
     .map(
       (r) => `<tr>
-      <td><strong>${RZ.esc(r.toolName)}</strong></td>
+      <td><strong>${RZ.esc(r.toolName)}</strong>${notesLine(r)}</td>
       <td>${RZ.esc(r.name)}</td>
       <td class="muted">${RZ.esc(r.boothId || '—')}</td>
       <td class="muted">${RZ.esc(r.phone || '—')}</td>
       <td class="muted">${RZ.time(r.timeOut)}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="returnRental(${r.id})">Check in</button></td>
+      <td style="display:flex;gap:6px;"><button class="btn btn-primary btn-sm" onclick="returnRental(${r.id})">Check in</button><button class="btn btn-ghost btn-sm" onclick="addNote(${r.id})" title="Add a note">Note</button></td>
     </tr>`,
     )
     .join('');
@@ -122,13 +127,13 @@ function renderRentals() {
     .map(
       (r) => `<tr>
       <td class="mono">#${r.id}</td>
-      <td>${RZ.esc(r.toolName)}</td>
+      <td>${RZ.esc(r.toolName)}${notesLine(r)}</td>
       <td>${RZ.esc(r.name)}</td>
       <td class="muted">${RZ.esc(r.boothId || '—')}</td>
       <td class="muted">${RZ.esc(r.phone || '—')}</td>
       <td class="muted">${RZ.time(r.timeOut)}</td>
       <td class="muted">${r.timeIn ? RZ.time(r.timeIn) : '—'}</td>
-      <td>${r.status === 'out' ? RZ.pill('out') + ` <button class="btn btn-primary btn-sm" onclick="returnRental(${r.id})">In</button>` : '<span class="pill available">Returned</span> <button class="btn btn-ghost btn-sm" onclick="reopenRental(' + r.id + ')" title="Undo check-in — mark as out again">Undo</button>'}</td>
+      <td>${r.status === 'out' ? RZ.pill('out') + ` <button class="btn btn-primary btn-sm" onclick="returnRental(${r.id})">In</button>` : '<span class="pill available">Returned</span> <button class="btn btn-ghost btn-sm" onclick="reopenRental(' + r.id + ')" title="Undo check-in — mark as out again">Undo</button>'} <button class="btn btn-ghost btn-sm" onclick="addNote(${r.id})" title="Add a note">Note</button></td>
     </tr>`,
     )
     .join('');
@@ -147,6 +152,17 @@ async function returnRental(id) {
 async function reopenRental(id) {
   try {
     await RZ.api(`/api/admin/rentals/${id}/reopen`, { method: 'PATCH', token: TOKEN });
+    load();
+  } catch (err) {
+    RZ.notice(RZ.el('notice'), 'error', err.message);
+  }
+}
+// Append a note to a rental's running log.
+async function addNote(id) {
+  const note = prompt('Add a note to this rental:');
+  if (!note || !note.trim()) return;
+  try {
+    await RZ.api(`/api/admin/rentals/${id}/notes`, { method: 'POST', token: TOKEN, body: { note } });
     load();
   } catch (err) {
     RZ.notice(RZ.el('notice'), 'error', err.message);
@@ -186,6 +202,7 @@ RZ.el('search').addEventListener('input', () => {
 
 window.returnRental = returnRental;
 window.reopenRental = reopenRental;
+window.addNote = addNote;
 window.openCheckout = openCheckout;
 window.closeModals = closeModals;
 window.load = load;

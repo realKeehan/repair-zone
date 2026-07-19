@@ -167,6 +167,16 @@ apiRouter.patch('/admin/repairs/:id', requireAdmin, async (req, res) => {
   res.json({ ok: true, repair: updated });
 });
 
+// Append an internal note to a repair's running log. Notes are staff-only and
+// are NOT pushed to the public Discord post, so this doesn't notify Discord.
+apiRouter.post('/admin/repairs/:id/notes', requireAdmin, (req, res) => {
+  const note = str((req.body || {}).note, 1000);
+  if (!note) return res.status(400).json({ error: 'Note text is required.' });
+  const updated = db.appendRepairNote(req.params.id, note);
+  if (!updated) return res.status(404).json({ error: 'Repair not found.' });
+  res.json({ ok: true, repair: updated });
+});
+
 /* ── admin: tools inventory ──────────────────────────────── */
 
 apiRouter.get('/admin/tools', requireAdmin, (req, res) => {
@@ -253,6 +263,15 @@ apiRouter.patch('/admin/rentals/:id/return', requireAdmin, (req, res) => {
 // Undo an accidental check-in: flip a returned rental back to "out".
 apiRouter.patch('/admin/rentals/:id/reopen', requireAdmin, (req, res) => {
   const rental = db.reopenRental(req.params.id);
+  if (!rental) return res.status(404).json({ error: 'Rental not found.' });
+  res.json({ ok: true, rental });
+});
+
+// Append a note to a rental's running log.
+apiRouter.post('/admin/rentals/:id/notes', requireAdmin, (req, res) => {
+  const note = str((req.body || {}).note, 1000);
+  if (!note) return res.status(400).json({ error: 'Note text is required.' });
+  const rental = db.appendRentalNote(req.params.id, note);
   if (!rental) return res.status(404).json({ error: 'Rental not found.' });
   res.json({ ok: true, rental });
 });

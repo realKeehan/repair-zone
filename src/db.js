@@ -35,6 +35,15 @@ function nowISO() {
   return new Date().toISOString();
 }
 
+// Append a timestamped line to a notes blob (admin running-log style). Returns
+// the new notes string; a blank note leaves the existing notes unchanged.
+function appendNote(existing, text) {
+  const clean = String(text || '').trim();
+  if (!clean) return existing || '';
+  const stamp = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return existing ? `${existing}\n[${stamp}] ${clean}` : `[${stamp}] ${clean}`;
+}
+
 function emptyDb() {
   return {
     counters: { repair: 0, rental: 0, tool: 0 },
@@ -112,6 +121,16 @@ export function updateRepair(id, patch) {
     if (key in patch && patch[key] !== undefined) r[key] = patch[key];
   }
   if (patch.discord) r.discord = { ...(r.discord || {}), ...patch.discord };
+  r.updatedAt = nowISO();
+  save();
+  return r;
+}
+
+/** Append a timestamped internal note to a repair's running notes log. */
+export function appendRepairNote(id, text) {
+  const r = getRepair(id);
+  if (!r) return null;
+  r.notes = appendNote(r.notes, text);
   r.updatedAt = nowISO();
   save();
   return r;
@@ -196,6 +215,7 @@ export function createRental(data) {
     name: data.name,
     boothId: data.boothId || '',
     phone: data.phone || '',
+    notes: '',
     timeOut: nowISO(),
     timeIn: null,
     status: 'out',
@@ -260,6 +280,15 @@ export function reopenRental(id) {
     }
     save();
   }
+  return rental;
+}
+
+/** Append a timestamped note to a rental's running notes log. */
+export function appendRentalNote(id, text) {
+  const rental = getRental(id);
+  if (!rental) return null;
+  rental.notes = appendNote(rental.notes || '', text);
+  save();
   return rental;
 }
 

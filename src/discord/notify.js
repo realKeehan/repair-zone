@@ -97,8 +97,8 @@ export function buildRepairEmbed(repair) {
   embed.addFields({ name: 'The request', value: (repair.issue || '—').slice(0, 1024) });
 
   // Forum channels are public, so contact details (phone / email / Discord tag)
-  // are deliberately left out of the post — they live only on the admin ticket.
-  if (repair.notes) embed.addFields({ name: 'Notes', value: repair.notes.slice(0, 1024) });
+  // AND internal staff notes are deliberately kept off the post — they live only
+  // on the admin ticket.
   return embed;
 }
 

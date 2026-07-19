@@ -188,8 +188,21 @@ function openModal(id) {
           }</p>`
         : ''
     }`;
-  RZ.el('modal-notes').value = r.notes || '';
+  renderNotesLog(r);
+  RZ.el('modal-note').value = '';
   RZ.el('modal').classList.add('show');
+}
+
+// Show the accumulated internal notes (textContent keeps line breaks safe).
+function renderNotesLog(r) {
+  const log = RZ.el('modal-notes-log');
+  if (r.notes) {
+    log.textContent = r.notes;
+    log.classList.remove('muted');
+  } else {
+    log.textContent = 'No notes yet.';
+    log.classList.add('muted');
+  }
 }
 function closeModal() {
   RZ.el('modal').classList.remove('show');
@@ -197,9 +210,15 @@ function closeModal() {
 }
 RZ.el('modal-save').addEventListener('click', async () => {
   if (!editingId) return;
+  const input = RZ.el('modal-note');
+  const text = input.value.trim();
+  if (!text) return;
   try {
-    await RZ.api(`/api/admin/repairs/${editingId}`, { method: 'PATCH', token: TOKEN, body: { notes: RZ.el('modal-notes').value } });
-    closeModal();
+    const { repair } = await RZ.api(`/api/admin/repairs/${editingId}/notes`, { method: 'POST', token: TOKEN, body: { note: text } });
+    input.value = '';
+    const idx = REPAIRS.findIndex((x) => x.id === editingId);
+    if (idx >= 0) REPAIRS[idx] = repair;
+    renderNotesLog(repair);
     load();
   } catch (err) {
     alert(err.message);
