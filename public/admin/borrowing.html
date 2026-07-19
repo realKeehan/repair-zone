@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Borrowing &amp; Inventory · Repair Zone Admin</title>
+  <title>Borrowing · Repair Zone Admin</title>
   <meta name="robots" content="noindex" />
   <link rel="stylesheet" href="/css/styles.css?v=2" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>" />
@@ -38,9 +38,8 @@
 
   <main class="container" id="panel" style="display:none;padding-top:28px;padding-bottom:60px;">
     <div class="toolbar">
-      <h1 style="margin:0;font-size:1.5rem;">Borrowing &amp; inventory</h1>
+      <h1 style="margin:0;font-size:1.5rem;">Tool borrowing</h1>
       <div class="spacer"></div>
-      <button class="btn btn-ghost btn-sm" onclick="openAddTool()">+ Add tool</button>
       <button class="btn btn-primary btn-sm" onclick="openCheckout()">Check out a tool</button>
       <button class="btn btn-ghost btn-sm" onclick="load()">↻</button>
     </div>
@@ -53,11 +52,11 @@
       <div class="spacer"></div>
     </div>
 
-    <h2 class="section-title" style="font-size:1.2rem;margin:10px 0 12px;">Tool inventory &amp; live status</h2>
+    <h2 class="section-title" style="font-size:1.2rem;margin:10px 0 12px;">Currently loaned out</h2>
     <div class="table-wrap" style="margin-bottom:32px;">
       <table>
-        <thead><tr><th>Tool</th><th>Category</th><th>Status</th><th>Borrower</th><th>Out since</th><th>Actions</th></tr></thead>
-        <tbody id="tools"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+        <thead><tr><th>Tool</th><th>Borrower</th><th>Booth</th><th>Phone</th><th>Out since</th><th>Actions</th></tr></thead>
+        <tbody id="active"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
       </table>
     </div>
 
@@ -84,21 +83,6 @@
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn btn-ghost btn-sm" onclick="closeModals()">Cancel</button>
         <button class="btn btn-primary btn-sm" id="co-save">Check out</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add tool modal -->
-  <div class="modal-backdrop" id="addtool-modal">
-    <div class="modal">
-      <h3>Add a tool</h3>
-      <div class="notice" id="addtool-notice"></div>
-      <div class="field"><label for="at-name">Tool name <span class="req">*</span></label><input type="text" id="at-name" /></div>
-      <div class="field"><label for="at-cat">Category</label><input type="text" id="at-cat" placeholder="Electronics, Hand tools…" /></div>
-      <div class="field"><label class="check"><input type="checkbox" id="at-train" /> <span>Requires training / demo before use</span></label></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="btn btn-ghost btn-sm" onclick="closeModals()">Cancel</button>
-        <button class="btn btn-primary btn-sm" id="at-save">Add tool</button>
       </div>
     </div>
   </div>

@@ -61,18 +61,13 @@
 
         <div class="form-row">
           <div class="field">
-            <label for="phone">Phone number <span class="hint">(optional)</span></label>
-            <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="40" placeholder="555-123-4567" />
+            <label for="contact">Contact method <span class="req">*</span></label>
+            <input type="text" id="contact" name="contact" required maxlength="120" placeholder="Phone, Discord tag, or email" />
           </div>
           <div class="field">
-            <label for="boothId">Booth ID / location <span class="hint">(optional)</span></label>
-            <input type="text" id="boothId" name="boothId" maxlength="60" placeholder="e.g. Hall B, Booth 214" />
+            <label for="boothId">Booth ID / location <span class="req">*</span></label>
+            <input type="text" id="boothId" name="boothId" required maxlength="60" placeholder="e.g. Hall B, Booth 214" />
           </div>
-        </div>
-
-        <div class="field">
-          <label for="contact">Other contact <span class="hint">(optional — Discord tag, email…)</span></label>
-          <input type="text" id="contact" name="contact" maxlength="120" placeholder="@you on Discord or you@email.com" />
         </div>
 
         <div class="field">

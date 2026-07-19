@@ -11,7 +11,6 @@ form.addEventListener('submit', async (e) => {
   const body = {
     type: RZ.el('type').value,
     name: RZ.el('name').value,
-    phone: RZ.el('phone').value,
     boothId: RZ.el('boothId').value,
     contact: RZ.el('contact').value,
     item: RZ.el('item').value,

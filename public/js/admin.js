@@ -75,7 +75,7 @@ function renderStats(s) {
     <div class="stat"><div class="n">${s.repairs.total}</div><div class="l">Total requests</div></div>
     <div class="stat"><div class="n" style="color:var(--orange-600)">${s.repairs.open}</div><div class="l">In the queue</div></div>
     <div class="stat"><div class="n" style="color:var(--green)">${s.repairs.done}</div><div class="l">Completed</div></div>
-    <div class="stat"><div class="n" style="color:var(--teal)">${s.rentals.out}</div><div class="l">Tools out</div></div>`;
+    <div class="stat"><div class="n" style="color:var(--red)">${s.repairs.unable}</div><div class="l">Unable to repair</div></div>`;
 }
 
 function matchesFilter(r) {

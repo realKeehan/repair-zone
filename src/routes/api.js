@@ -80,9 +80,8 @@ apiRouter.post('/repairs', publicLimiter, async (req, res) => {
     agreedTerms: body.agreedTerms === true || body.agreedTerms === 'true',
   };
 
-  const missing = requireFields(data, ['name', 'item', 'issue']);
+  const missing = requireFields(data, ['name', 'contact', 'boothId', 'item', 'issue']);
   if (missing.length) return res.status(400).json({ error: `Missing required field(s): ${missing.join(', ')}` });
-  if (!data.contact && !data.phone) return res.status(400).json({ error: 'Please provide a phone number or another way to reach you.' });
   if (!data.agreedTerms) return res.status(400).json({ error: 'You must accept the Terms & Conditions to submit a request.' });
 
   const repair = db.createRepair(data);

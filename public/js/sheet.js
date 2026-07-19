@@ -2,7 +2,7 @@
 
 let TOKEN = localStorage.getItem('rz-admin-token') || '';
 let TAB = 'requests';
-let DATA = { requests: [], rentals: [], inventory: [] };
+let DATA = { requests: [], rentals: [] };
 
 /* ── column definitions per tab ── */
 const COLUMNS = {
@@ -30,16 +30,6 @@ const COLUMNS = {
     { key: 'timeOut', label: 'Time out', get: (r) => r.timeOut, time: true },
     { key: 'timeIn', label: 'Time in', get: (r) => r.timeIn, time: true },
     { key: 'status', label: 'Status', get: (r) => r.status, pill: true },
-  ],
-  inventory: [
-    { key: 'id', label: '#', get: (t) => '#' + t.id },
-    { key: 'name', label: 'Tool', get: (t) => t.name },
-    { key: 'category', label: 'Category', get: (t) => t.category },
-    { key: 'status', label: 'Status', get: (t) => t.status, pill: true },
-    { key: 'borrowerName', label: 'Borrower', get: (t) => t.borrowerName || '' },
-    { key: 'borrowerBooth', label: 'Booth', get: (t) => t.borrowerBooth || '' },
-    { key: 'checkedOutAt', label: 'Out since', get: (t) => t.checkedOutAt, time: true },
-    { key: 'requiresTraining', label: 'Training?', get: (t) => (t.requiresTraining ? 'yes' : '') },
   ],
 };
 
@@ -85,13 +75,12 @@ RZ.el('logout').addEventListener('click', (e) => {
 /* ── data ── */
 async function load() {
   try {
-    const [{ repairs }, { rentals }, { tools }, { stats }] = await Promise.all([
+    const [{ repairs }, { rentals }, { stats }] = await Promise.all([
       RZ.api('/api/admin/repairs', { token: TOKEN }),
       RZ.api('/api/admin/rentals', { token: TOKEN }),
-      RZ.api('/api/admin/tools', { token: TOKEN }),
       RZ.api('/api/admin/ping', { token: TOKEN }),
     ]);
-    DATA = { requests: repairs, rentals, inventory: tools };
+    DATA = { requests: repairs, rentals };
     renderStats(stats);
     render();
   } catch (err) {

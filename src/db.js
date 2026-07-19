@@ -248,6 +248,7 @@ export function stats() {
       total: db.repairs.length,
       open: db.repairs.filter((r) => ['open', 'claimed', 'in_progress'].includes(r.status)).length,
       done: db.repairs.filter((r) => ['done', 'picked_up'].includes(r.status)).length,
+      unable: db.repairs.filter((r) => r.status === 'unable').length,
     },
     tools: {
       total: db.tools.length,
